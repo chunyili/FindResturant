@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">FindResturant</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="hint">Search Resturants</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_searchable">SearchableActivity</string>
+    <string name="title_activity_place_picker">PlacePickerActivity</string>
+    <string name="server_client_id">328293283767-llbupgrs1meca363c50hb24te4vvp2pt.apps.googleusercontent.com</string>
+    <string name="google_app_id">seventh-wharf-125422</string>
+    <string name="title_activity_resturant_list">ResturantList</string>
+</resources>
