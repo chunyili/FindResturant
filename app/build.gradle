@@ -19,7 +19,7 @@ android {
         }
     }
     dexOptions {
-        preDexLibraries true
+        preDexLibraries false
         javaMaxHeapSize "4g" // Use gig increments depending on needs
         incremental true
     }
@@ -29,6 +29,14 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
+    }
+    productFlavors {
+        dev {
+            minSdkVersion 23 //The important bit.
+        }
+        prod {
+            minSdkVersion 23 //Example. Set to your real requirement.
+        }
     }
 }
 repositories {

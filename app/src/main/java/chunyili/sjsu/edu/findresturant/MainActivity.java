@@ -16,6 +16,11 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SearchView;
 import android.util.Log;
 import android.view.View;
@@ -77,6 +82,8 @@ public class MainActivity extends AppCompatActivity
         Log.e(TAG___Test, mainListView.toString());
         mainListView.setAdapter(mAdapter);
         getLoaderManager().initLoader(LOADER_ID, null, this);
+//        Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
+//        locatioinToolbar.animate().translationY(-locatioinToolbar.getHeight()).setInterpolator(new AccelerateInterpolator(2));
     }
 
     @Override
@@ -95,24 +102,85 @@ public class MainActivity extends AppCompatActivity
         getMenuInflater().inflate(R.menu.main, menu);
         SearchManager searchManager =
                 (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView =
-                (SearchView) menu.findItem(R.id.searchItem).getActionView();
+        MenuItem menuItem = menu.findItem(R.id.searchItem);
+        SearchView searchView = (SearchView) menuItem.getActionView();
         Log.e(TAG___Test, getComponentName().toString());
         searchView.setSearchableInfo(
                 searchManager.getSearchableInfo(getComponentName()));
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
+                SearchView searchView =
+                        (SearchView) locatioinToolbar.findViewById(R.id.location_search_view);
+                int searchImgId = MainActivity.this.getResources().getIdentifier("android:id/search_mag_icon", null, null);
+                ImageView searchImage = (ImageView) searchView.findViewById(searchImgId);
+                searchImage.setImageResource(R.drawable.location);
+                searchView.setVisibility(View.VISIBLE);
+                searchView.setQueryHint("Current Location");
+                Log.e(TAG___Test, "seachItem opened");
+            }
+        });
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+
+                Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
+                SearchView searchView =
+                        (SearchView) locatioinToolbar.findViewById(R.id.location_search_view);
+                searchView.setVisibility(View.INVISIBLE);
+                Log.e(TAG___Test, "seachItem closed");
+                return false;
+            }
+        });
         return true;
     }
+
+
+//    @Override
+//    public boolean onPrepareOptionsMenu(Menu menu) {
+//
+//        SearchManager searchManager =
+//                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+//        MenuItem menuItem = menu.findItem(R.id.searchItem);
+//        LinearLayout linearLayout = (LinearLayout) menuItem.getActionView();
+//        SearchView searchView =
+//                (SearchView) linearLayout.findViewById(R.id.content_search_view);
+//        Log.e(TAG___Test, getComponentName().toString());
+//        searchView.setSearchableInfo(
+//                searchManager.getSearchableInfo(getComponentName()));
+//
+//        return true;
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        Log.e(TAG___Test, "clicked");
+        switch (item.getItemId()) {
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+            case R.id.searchItem:
+                //set visibilty
+                //do what ever you wantLinearLayout linearLayout = (LinearLayout) menuItem.getActionView();
+                item.setActionView(R.layout.search_combo);
+                LinearLayout linearLayout = (LinearLayout) item.getActionView();
+                Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
+                locatioinToolbar.setVisibility(View.VISIBLE);
+                locatioinToolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2));
+                SearchView searchView =
+                        (SearchView) linearLayout.findViewById(R.id.content_search_view);
+                searchView.setVisibility(View.VISIBLE);
+                searchView.setQueryHint("Search Resturant");
+                searchView =
+                        (SearchView) locatioinToolbar.findViewById(R.id.location_search_view);
+                searchView.setVisibility(View.VISIBLE);
+                searchView.setQueryHint("Current Location");
+                Log.e(TAG___Test, "seachItem clicked");
+
+                break;
+
         }
 
         return super.onOptionsItemSelected(item);

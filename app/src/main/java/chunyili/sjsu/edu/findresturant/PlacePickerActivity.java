@@ -71,7 +71,7 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_place_picker);
         // Create Location Client
-//        mLocationView = (TextView)findViewById(R.id.textView1);
+        mLocationView = (TextView) findViewById(R.id.textView1);
 //
 //        setContentView(mLocationView);
 
@@ -87,7 +87,9 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
 //
 //        pickerButton.setOnClickListener(new View.OnClickListener() {
 //            @Override
-//            public void onClick(View v) { displayLocation(); }
+//            public void onClick(View v) {
+//                displayLocation();
+//            }
 //        });
 //        final int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
 //
@@ -95,7 +97,7 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
                 .addApi(Places.PLACE_DETECTION_API)
                 .enableAutoManage(this, GOOGLE_API_CLIENT_ID, PlacePickerActivity.this)
                 .build();
-//
+
         pickerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -135,7 +137,6 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
 //            }
 //        });
     }
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -149,7 +150,20 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
         mGoogleApiClient.disconnect();
         super.onStop();
     }
+
     private void displayLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
 //        if (mConnected) {
 //            if (mCurrentLocation != null) {
                 mLocationView.setText(mCurrentLocation.toString());
@@ -244,19 +258,19 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
     public void onConnected(Bundle bundle) {
 
         Log.i(TAG, "GoogleApiClient connection has been connected.");
-//        mLocationRequest = LocationRequest.create();
-//        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-//        mLocationRequest.setInterval(1000); // Update location every second
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(1000); // Update location every second
 //
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 //             TODO: Consider calling
-//            ActivityCompat.requestPermissions(PlacePickerActivity.this,
-//                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-//                                PERMISSION_REQUEST_CODE);
-//            return;
-//        }
-//        LocationServices.FusedLocationApi.requestLocationUpdates(
-//                mGoogleApiClient, mLocationRequest, this);
+            ActivityCompat.requestPermissions(PlacePickerActivity.this,
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                PERMISSION_REQUEST_CODE);
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
     }
 
     @Override
