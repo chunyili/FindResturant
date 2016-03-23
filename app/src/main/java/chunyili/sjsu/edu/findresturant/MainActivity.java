@@ -38,6 +38,7 @@ import android.widget.ListView;
 import com.yelp.clientlib.connection.YelpAPI;
 import com.yelp.clientlib.connection.YelpAPIFactory;
 import com.yelp.clientlib.entities.Business;
+import com.yelp.clientlib.entities.Location;
 import com.yelp.clientlib.entities.SearchResponse;
 
 import java.io.IOException;
@@ -91,6 +92,8 @@ public class MainActivity extends AppCompatActivity
         mAdapter = new BusinessAdapter(this,
                 new ArrayList<Business>());
         mainListView = (ListView) findViewById(android.R.id.list);
+        mainListView.smoothScrollToPosition(15);
+
         Log.e(TAG___Test, mainListView.toString());
         mainListView.setAdapter(mAdapter);
         getLoaderManager().initLoader(LOADER_ID, null, this);
@@ -139,6 +142,7 @@ public class MainActivity extends AppCompatActivity
                 searchView.setQueryHint("Current Location");
                 setSupportActionBar(locatioinToolbar);
                 getSupportActionBar().show();
+
                 Log.e(TAG___Test, "seachItem opened");
             }
         });
@@ -341,11 +345,12 @@ public class MainActivity extends AppCompatActivity
                 ArrayList<Business> businesses = searchResponse.businesses();
                 String businessName = businesses.get(0).name();
                 Double rating = businesses.get(0).rating();
-                Log.e(TAG___Test, businessName);
-                Log.e(TAG___Test, String.valueOf(rating));
+                int review = businesses.get(0).reviewCount();
+                Location address = businesses.get(0).location();
 
 
                 ListView mainListView = (ListView) findViewById(android.R.id.list);
+
                 mainListView.setAdapter(new BusinessAdapter(MainActivity.this, businesses));
             }
             @Override
