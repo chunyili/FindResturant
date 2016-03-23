@@ -95,6 +95,9 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
 //
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Places.PLACE_DETECTION_API)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
                 .enableAutoManage(this, GOOGLE_API_CLIENT_ID, PlacePickerActivity.this)
                 .build();
 
@@ -137,6 +140,7 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
 //            }
 //        });
     }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -166,7 +170,7 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
                 mGoogleApiClient);
 //        if (mConnected) {
 //            if (mCurrentLocation != null) {
-                mLocationView.setText(mCurrentLocation.toString());
+        mLocationView.setText(mCurrentLocation.toString());
 //            } else {
 //                Log.d(TAG, "mCurrentLocation is NULL!");
 //            }
@@ -188,7 +192,7 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
                 Log.e(LOG_TAG, likelyPlaces.toString());
                 int count = 0;
                 for (PlaceLikelihood placeLikelihood : likelyPlaces) {
-                    if(count == 0){
+                    if (count == 0) {
                         PlacePicker.IntentBuilder intentBuilder =
                                 new PlacePicker.IntentBuilder();
                         LatLng currentLatLng = placeLikelihood.getPlace().getLatLng();
@@ -265,8 +269,8 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 //             TODO: Consider calling
             ActivityCompat.requestPermissions(PlacePickerActivity.this,
-                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                PERMISSION_REQUEST_CODE);
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSION_REQUEST_CODE);
             return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(
