@@ -10,6 +10,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
@@ -42,6 +44,7 @@ public class DetailActivity extends AppCompatActivity {
     private TextView restaurantAdress;
     private TextView restaurantPhoneNO;
     Intent intent;
+    Menu menu;
 
     private String TAG___Test = "Test";
     @Override
@@ -136,6 +139,12 @@ public class DetailActivity extends AppCompatActivity {
 
         call.enqueue(callback);
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        this.menu = menu;
+        return true;
+    }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
