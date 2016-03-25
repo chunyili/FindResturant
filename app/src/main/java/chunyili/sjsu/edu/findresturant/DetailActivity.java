@@ -35,9 +35,13 @@ import retrofit.Response;
 import retrofit.Retrofit;
 
 public class DetailActivity extends AppCompatActivity {
-    int position = 0;
+    private ImageView restaurantIcon;
+    private TextView restaurantName;
+    private ImageView restaurantRating;
+    private TextView restaurantReviews;
+    private TextView restaurantAdress;
+    private TextView restaurantPhoneNO;
     Intent intent;
-
 
     private String TAG___Test = "Test";
     @Override
@@ -50,14 +54,13 @@ public class DetailActivity extends AppCompatActivity {
         getSupportActionBar().setIcon(R.mipmap.icon);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        TextView textView = (TextView) findViewById(R.id.restaurant_name);
+        restaurantName = (TextView) findViewById(R.id.restaurant_name);
         intent = getIntent();
         connectToYelp();
-        textView.setText(intent.getExtras().get("id").toString());
+        restaurantName.setText(intent.getExtras().get("id").toString());
 
 
     }
-
 
 
     private void connectToYelp(){
@@ -79,14 +82,15 @@ public class DetailActivity extends AppCompatActivity {
 
 //                View convertView = LayoutInflater//.from(getContext()).inflate(R.layout.container_list_item_view, parent, false);
                 // Lookup view for data population
-                TextView tvName = (TextView) findViewById(R.id.restaurant_name);
-               // TextView tvId = (TextView) convertView.findViewById(R.id.business_id);
-                TextView tvLocation = (TextView) findViewById(R.id.restaurant_address);
-                //  TextView tvHome = (TextView) convertView.findViewById(R.id.business_rating);
-
-//                new DownloadImageTask((ImageView) convertView.findViewById(R.id.restaurant_rating))
-//                        .execute(searchResponse.imageUrl());
-                new DownloadImageTask((ImageView) findViewById(R.id.restaurant_rating))
+                restaurantName = (TextView) findViewById(R.id.restaurant_name);
+                restaurantAdress = (TextView) findViewById(R.id.restaurant_address);
+                restaurantIcon = (ImageView) findViewById(R.id.restaurant_icon);
+                restaurantPhoneNO = (TextView) findViewById(R.id.restaurant_phone_No);
+                restaurantReviews = (TextView) findViewById(R.id.restaurant_reviews);
+                new DownloadImageTask(restaurantIcon)
+                        .execute(searchResponse.imageUrl());
+                restaurantRating = (ImageView) findViewById(R.id.restaurant_rating);
+                new DownloadImageTask(restaurantRating)
                         .execute(searchResponse.ratingImgUrlLarge());
 
                 // Populate the data into the template view using the data object
@@ -103,10 +107,19 @@ public class DetailActivity extends AppCompatActivity {
                 }
 
 
-                tvName.setText(searchResponse.name());
-               // tvId.setText(business.id());
+                restaurantName.setText(searchResponse.name());
+                if (searchResponse.phone() != null) {
+                    restaurantPhoneNO.setText("Call " + searchResponse.phone().toString());
+                } else {
+                    restaurantPhoneNO.setText("No data!");
+                }
+                if (searchResponse.reviewCount() != null) {
+                    restaurantReviews.setText(searchResponse.reviewCount() + " Reviews");
+                } else {
+                    restaurantReviews.setText("No data!");
+                }
 
-                tvLocation.setText(""+ sb.toString()+ ", " + searchResponse.location().city());
+                restaurantAdress.setText(""+ sb.toString()+ ", " + searchResponse.location().city());
 
                 // Update UI text with the Business object.
 
