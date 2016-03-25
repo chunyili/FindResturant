@@ -16,6 +16,8 @@ import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
 import android.view.animation.DecelerateInterpolator;
@@ -235,16 +237,20 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
+        Context context = getApplicationContext();
         // Handle navigation view item clicks here.
+        Class fragClass = null;
         int id = item.getItemId();
 
         if (id == R.id.nav_search) {
+            fragClass = SearchableActivity.class;
+            Toast toast = Toast.makeText(context,"Search", Toast.LENGTH_SHORT);
+            toast.show();
 
         } else if (id == R.id.nav_favorite) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+            fragClass = FavoriteActivity.class;
+            Toast toast = Toast.makeText(context,"Favorite", Toast.LENGTH_SHORT);
+            toast.show();
 
         }
 
