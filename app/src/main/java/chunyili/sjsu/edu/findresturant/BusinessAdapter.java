@@ -3,6 +3,7 @@ package chunyili.sjsu.edu.findresturant;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -37,6 +38,7 @@ public class BusinessAdapter extends ArrayAdapter<Business> {
         }
         // Lookup view for data population
         TextView tvName = (TextView) convertView.findViewById(R.id.business_name);
+        TextView tvId = (TextView) convertView.findViewById(R.id.business_id);
         TextView tvLocation = (TextView) convertView.findViewById(R.id.location);
         //  TextView tvHome = (TextView) convertView.findViewById(R.id.business_rating);
 
@@ -58,10 +60,12 @@ public class BusinessAdapter extends ArrayAdapter<Business> {
             }
         }
 
+
         tvName.setText(business.name());
+        tvId.setText(business.id());
+
         tvLocation.setText(""+ sb.toString()+ ", " + business.location().city());
-        // tvHome.setText("" + business.rating());
-        // Return the completed view to render on screen
+
         return convertView;
     }
 

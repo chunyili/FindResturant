@@ -11,4 +11,5 @@
     <string name="server_client_id">328293283767-llbupgrs1meca363c50hb24te4vvp2pt.apps.googleusercontent.com</string>
     <string name="google_app_id">seventh-wharf-125422</string>
     <string name="title_activity_resturant_list">ResturantList</string>
+    <string name="title_activity_detail">DetailActivity</string>
 </resources>

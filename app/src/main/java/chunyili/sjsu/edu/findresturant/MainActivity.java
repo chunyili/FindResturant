@@ -16,9 +16,10 @@ import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
-import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -34,12 +35,21 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.yelp.clientlib.connection.YelpAPI;
 import com.yelp.clientlib.connection.YelpAPIFactory;
 import com.yelp.clientlib.entities.Business;
+import com.yelp.clientlib.entities.Coordinate;
 import com.yelp.clientlib.entities.Location;
 import com.yelp.clientlib.entities.SearchResponse;
+import com.yelp.clientlib.entities.options.CoordinateOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,7 +65,9 @@ public class MainActivity extends AppCompatActivity
         implements
         LoaderManager.LoaderCallbacks,
         SearchView.OnQueryTextListener, SearchView.OnCloseListener,
-        NavigationView.OnNavigationItemSelectedListener {
+        NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener,
+        GoogleApiClient.ConnectionCallbacks,
+        LocationListener {
 
 
     private static final String TAG___Test = "SearchActivity";
@@ -63,6 +75,11 @@ public class MainActivity extends AppCompatActivity
     // This is the Adapter being used to display the list's data.
     BusinessAdapter mAdapter;
     private static final int LOADER_ID = 42;
+    static volatile boolean isCurrentLocation = true;
+
+    private GoogleApiClient mGoogleApiClient;
+
+    static volatile String query = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -72,23 +89,11 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        getSupportActionBar().setIcon(R.mipmap.icon);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+
+
         mAdapter = new BusinessAdapter(this,
                 new ArrayList<Business>());
         mainListView = (ListView) findViewById(android.R.id.list);
@@ -96,6 +101,21 @@ public class MainActivity extends AppCompatActivity
 
         Log.e(TAG___Test, mainListView.toString());
         mainListView.setAdapter(mAdapter);
+        final Context context = this;
+
+        mainListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(context, DetailActivity.class);
+
+                TextView tvName = (TextView) view.findViewById(R.id.business_id);
+
+                intent.putExtra("id", tvName.getText().toString());
+                startActivity(intent);
+
+            }
+        });
         getLoaderManager().initLoader(LOADER_ID, null, this);
         Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
         setSupportActionBar(locatioinToolbar);
@@ -106,6 +126,21 @@ public class MainActivity extends AppCompatActivity
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
     }
 
     @Override
@@ -118,25 +153,38 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private static volatile String typedLocation;
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         SearchManager searchManager =
                 (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+
         MenuItem menuItem = menu.findItem(R.id.searchItem);
         SearchView searchView = (SearchView) menuItem.getActionView();
+        Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
+        SearchView locationsearchView =
+                (SearchView) locatioinToolbar.findViewById(R.id.location_search_view);
+        locationsearchView.setOnQueryTextListener(this);
+
+
         Log.e(TAG___Test, getComponentName().toString());
         searchView.setSearchableInfo(
                 searchManager.getSearchableInfo(getComponentName()));
+
         searchView.setOnSearchClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
                 SearchView searchView =
                         (SearchView) locatioinToolbar.findViewById(R.id.location_search_view);
+
+
                 int searchImgId = MainActivity.this.getResources().getIdentifier("android:id/search_mag_icon", null, null);
                 ImageView searchImage = (ImageView) searchView.findViewById(searchImgId);
+
                 searchImage.setImageResource(R.drawable.location);
                 searchView.setVisibility(View.VISIBLE);
                 searchView.setQueryHint("Current Location");
@@ -153,6 +201,7 @@ public class MainActivity extends AppCompatActivity
                 Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
                 SearchView searchView =
                         (SearchView) locatioinToolbar.findViewById(R.id.location_search_view);
+
                 searchView.setVisibility(View.INVISIBLE);
                 setSupportActionBar(locatioinToolbar);
                 getSupportActionBar().hide();
@@ -180,38 +229,7 @@ public class MainActivity extends AppCompatActivity
 //        return true;
 //    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        Log.e(TAG___Test, "clicked");
-        switch (item.getItemId()) {
 
-            case R.id.searchItem:
-                //set visibilty
-                //do what ever you wantLinearLayout linearLayout = (LinearLayout) menuItem.getActionView();
-                item.setActionView(R.layout.search_combo);
-                LinearLayout linearLayout = (LinearLayout) item.getActionView();
-                Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
-                locatioinToolbar.setVisibility(View.VISIBLE);
-                locatioinToolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2));
-                SearchView searchView =
-                        (SearchView) linearLayout.findViewById(R.id.content_search_view);
-                searchView.setVisibility(View.VISIBLE);
-                searchView.setQueryHint("Search Resturant");
-                searchView =
-                        (SearchView) locatioinToolbar.findViewById(R.id.location_search_view);
-                searchView.setVisibility(View.VISIBLE);
-                searchView.setQueryHint("Current Location");
-                Log.e(TAG___Test, "seachItem clicked");
-
-                break;
-
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -256,11 +274,52 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onQueryTextSubmit(String query) {
+
+        Log.e(TAG___Test, "  submit  " +  typedLocation);
+
+        if(!isCurrentLocation && typedLocation.length() > 0){
+            try {
+                doMySearch();
+                Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
+                SearchView searchView =
+                        (SearchView) locatioinToolbar.findViewById(R.id.location_search_view);
+
+                searchView.setVisibility(View.INVISIBLE);
+                setSupportActionBar(locatioinToolbar);
+                getSupportActionBar().hide();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
         return false;
+
+
     }
 
     @Override
     public boolean onQueryTextChange(String newText) {
+
+        Log.e(TAG___Test, "textchange   " + newText);
+        typedLocation = newText;
+
+
+//                typedLocation = newText;
+
+
+
+        if(typedLocation.trim().isEmpty()) {
+
+            isCurrentLocation = true;
+
+        }else{
+            isCurrentLocation = false;
+        }
+
+        Log.e(TAG___Test, "iscurrentlocation " +  isCurrentLocation);
+        Log.e(TAG___Test, "typed location  " + typedLocation);
+
+
         return false;
     }
 
@@ -315,12 +374,16 @@ public class MainActivity extends AppCompatActivity
 
     private void handleIntent(Intent intent) throws IOException {
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String query = intent.getStringExtra(SearchManager.QUERY);
-            doMySearch(query);
+            query = intent.getStringExtra(SearchManager.QUERY);
+
+
+
+            doMySearch();
         }
     }
 
-    private void doMySearch(String query) throws IOException {
+
+    private void doMySearch() throws IOException {
         YelpAPIFactory apiFactory = new YelpAPIFactory("QHmJW4LG9PtjZEqUiW1pow", "yjf3i7UyzturnAkQ2LPtVtnT6k0", "PFRsmfRmnsX1oQXP4tK8Gm-UQ4CSrv1w", "KYhZNmMrY3JKdGyf7JWkxtgA2Gc");
         YelpAPI yelpAPI = apiFactory.createAPI();
 
@@ -328,13 +391,15 @@ public class MainActivity extends AppCompatActivity
         Map<String, String> params = new HashMap<>();
 
 
+
         params.put("term", query);
+
         params.put("limit", "20");
         params.put("radius_filter", "22000");
 
 
 
-        params.put("lang", "fr");
+        params.put("lang", "en");
 
         Callback<SearchResponse> callback = new Callback<SearchResponse>() {
             @Override
@@ -343,10 +408,6 @@ public class MainActivity extends AppCompatActivity
                 // Update UI text with the Business object.
                 int totalNumberOfResult = searchResponse.total();
                 ArrayList<Business> businesses = searchResponse.businesses();
-                String businessName = businesses.get(0).name();
-                Double rating = businesses.get(0).rating();
-                int review = businesses.get(0).reviewCount();
-                Location address = businesses.get(0).location();
 
 
                 ListView mainListView = (ListView) findViewById(android.R.id.list);
@@ -360,12 +421,102 @@ public class MainActivity extends AppCompatActivity
                 t.printStackTrace();
             }
         };
-        Call<SearchResponse> call = yelpAPI.search("San Francisco", params);
-//        Response<SearchResponse> searchResponse = call.execute();
+        Log.e(TAG___Test, "" + isCurrentLocation);
+        Log.e(TAG___Test, "here   " +typedLocation);
 
-//        Log.e(TAG___Test, searchResponse.body().toString());
-        call.enqueue(callback);
-        Log.e(TAG___Test, query);
+        if(isCurrentLocation){
+
+
+//            CoordinateOptions coordinate = CoordinateOptions.builder()
+//                    .latitude(37.11)
+//                    .longitude(-122.88)
+//                    .build();
+
+//            Call<SearchResponse> call = yelpAPI.search(coordinate, params);
+            Call<SearchResponse> call = yelpAPI.search("San Jose", params);
+
+            call.enqueue(callback);
+
+        }else{
+
+            Log.e(TAG___Test, typedLocation);
+            Call<SearchResponse> call = yelpAPI.search(typedLocation, params);
+
+            call.enqueue(callback);
+        }
+
+//        Log.e(TAG___Test, query);
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Connect the client.
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        // Disconnecting the client invalidates it.
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+
+    LocationRequest mLocationRequest;
+    private static final int PERMISSION_REQUEST_CODE = 100;
+    @Override
+    public void onConnected(Bundle bundle) {
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(1000); // Update location every second
+//
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//             TODO: Consider calling
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSION_REQUEST_CODE);
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+
+    }
+
+
+
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.i("suspend", "GoogleApiClient connection has been suspend");
+
+
+
+    }
+
+
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.e("main_location", "Google Places API connection failed with error code: "
+                + connectionResult.getErrorCode());
+
+        Toast.makeText(this,
+                "Google Places API connection failed with error code:" +
+                        connectionResult.getErrorCode(),
+                Toast.LENGTH_LONG).show();
+
+    }
+
+    Double Latitude;
+    Double Longitude;
+
+    @Override
+    public void onLocationChanged(android.location.Location location) {
+        Latitude = Double.valueOf(location.getLatitude());
+        Longitude = Double.valueOf(location.getLongitude());
+
+    }
+
 
 }

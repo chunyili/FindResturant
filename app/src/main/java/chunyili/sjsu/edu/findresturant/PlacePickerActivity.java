@@ -48,8 +48,8 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
     private static final int PERMISSION_REQUEST_CODE = 100;
 
 
-    private static final LatLngBounds BOUNDS_MOUNTAIN_VIEW = new LatLngBounds(
-            new LatLng(37.398160, -122.180831), new LatLng(37.430610, -121.972090));
+//    private static final LatLngBounds BOUNDS_MOUNTAIN_VIEW = new LatLngBounds(
+//            new LatLng(37.398160, -122.180831), new LatLng(37.430610, -121.972090));
 
     private final static int
             CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;

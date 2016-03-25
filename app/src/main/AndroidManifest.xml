@@ -9,14 +9,13 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/icon"
-        android:label="@mipmap/icon"
+        android:icon="@mipmap/icon1"
+        android:label="FindResturant"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
             android:allowBackup="true"
-            android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.app.default_searchable"
@@ -37,9 +36,10 @@
             android:label="@string/title_activity_searchable"
             android:launchMode="singleTop"
             android:theme="@style/AppTheme.NoActionBar">
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.SEARCH" />-->
-            <!--</intent-filter>-->
+
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.SEARCH" /> -->
+            <!-- </intent-filter> -->
 
             <meta-data
                 android:name="android.app.searchable"
@@ -73,7 +73,17 @@
         <activity
             android:name=".ResturantList"
             android:label="@string/title_activity_resturant_list"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".DetailActivity"
+            android:label="@string/title_activity_detail"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName="chunyili.sjsu.edu.findresturant.MainActivity" >
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="chunyili.sjsu.edu.findresturant.MainActivity" />
+        </activity>
     </application>
 
 </manifest>
