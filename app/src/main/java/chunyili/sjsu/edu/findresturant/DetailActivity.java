@@ -55,6 +55,7 @@ public class DetailActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setIcon(R.mipmap.icon);
+        getSupportActionBar().setTitle(R.string.app_names);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         restaurantName = (TextView) findViewById(R.id.restaurant_name);
@@ -152,7 +153,7 @@ public class DetailActivity extends AppCompatActivity {
         switch (item.getItemId()) {
 
             case R.id.test:
-                NavUtils.navigateUpFromSameTask(this);
+//                NavUtils.navigateUpFromSameTask(this);
                 return true;
         }
 

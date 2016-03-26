@@ -1,6 +1,7 @@
 package chunyili.sjsu.edu.findresturant;
 
 import android.Manifest;
+import android.app.Fragment;
 import android.app.LoaderManager;
 import android.app.SearchManager;
 import android.content.Context;
@@ -16,7 +17,6 @@ import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
@@ -65,13 +65,12 @@ import retrofit.Retrofit;
 
 public class MainActivity extends AppCompatActivity
         implements
-        LoaderManager.LoaderCallbacks,
         SearchView.OnQueryTextListener, SearchView.OnCloseListener,
         NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener,
         GoogleApiClient.ConnectionCallbacks,
         LocationListener {
 
-
+    private static final String FRAGMENT = "frament";
     private static final String TAG___Test = "SearchActivity";
     public ListView mainListView;
     // This is the Adapter being used to display the list's data.
@@ -82,6 +81,7 @@ public class MainActivity extends AppCompatActivity
     private GoogleApiClient mGoogleApiClient;
 
     static volatile String query = "";
+    private ArrayList<MyBusiness> myBusinesses;
 
 
     @Override
@@ -93,20 +93,22 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setIcon(R.mipmap.icon);
+        getSupportActionBar().setTitle(R.string.app_names);
 
 
 
 
-        mAdapter = new BusinessAdapter(this,
-                new ArrayList<Business>());
+        mAdapter = new BusinessAdapter(this, new ArrayList<MyBusiness>());
         mainListView = (ListView) findViewById(android.R.id.list);
         mainListView.smoothScrollToPosition(15);
 
         Log.e(TAG___Test, mainListView.toString());
         mainListView.setAdapter(mAdapter);
+
+        Log.e(TAG___Test, "Init content");
         final Context context = this;
 
-        mainListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        mainListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -119,7 +121,7 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-        getLoaderManager().initLoader(LOADER_ID, null, this);
+//        getLoaderManager().initLoader(LOADER_ID, null, this);
         Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
         setSupportActionBar(locatioinToolbar);
         getSupportActionBar().hide();
@@ -144,6 +146,30 @@ public class MainActivity extends AppCompatActivity
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+        if(savedInstanceState != null) {
+            Log.e(TAG___Test, "Loading content");
+            myBusinesses = savedInstanceState.getParcelableArrayList(FRAGMENT);
+            mainListView.setAdapter(new BusinessAdapter(MainActivity.this, myBusinesses));
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        Log.e(TAG___Test, "Saving content");
+        outState.putParcelableArrayList(FRAGMENT, myBusinesses);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        if(savedInstanceState != null) {
+            Log.e(TAG___Test, "Loading content");
+            myBusinesses = savedInstanceState.getParcelableArrayList(FRAGMENT);
+            mainListView.setAdapter(new BusinessAdapter(MainActivity.this, myBusinesses));
+        }
     }
 
     @Override
@@ -327,45 +353,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public Loader onCreateLoader(int id, Bundle args) {
-        if (id != LOADER_ID) {
-            return null;
-        }
-        if (ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.READ_CONTACTS)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{Manifest.permission.READ_CONTACTS},
-                    100);
-            return null;
-        }
-        Uri baseUri;
-
-            baseUri = ContactsContract.Contacts.CONTENT_URI;
-
-
-        // Now create and return a CursorLoader that will take care of
-        // creating a Cursor for the data being displayed.
-        String select = "((" + ContactsContract.Contacts.DISPLAY_NAME + " NOTNULL) AND ("
-                + ContactsContract.Contacts.HAS_PHONE_NUMBER + "=1) AND ("
-                + ContactsContract.Contacts.DISPLAY_NAME + " != '' ))";
-        return new CursorLoader(MainActivity.this, baseUri,
-                CONTACTS_SUMMARY_PROJECTION, select, null,
-                ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC");
-    }
-
-    @Override
-    public void onLoadFinished(Loader loader, Object data) {
-
-        //mAdapter.add((Business) data);
-    }
-
-    @Override
-    public void onLoaderReset(Loader loader) {
-        mAdapter.clear();
-    }
-
-    @Override
     protected void onNewIntent(Intent intent) {
         setIntent(intent);
         try {
@@ -411,11 +398,23 @@ public class MainActivity extends AppCompatActivity
                 // Update UI text with the Business object.
                 int totalNumberOfResult = searchResponse.total();
                 ArrayList<Business> businesses = searchResponse.businesses();
+                Log.e(TAG___Test, String.valueOf(businesses.size()));
 
+                myBusinesses = new ArrayList<>();
+                for(Business b: businesses){
+                    myBusinesses.add(new MyBusiness(b));
+                }
+                Log.e(TAG___Test, String.valueOf(myBusinesses.size()));
+                mainListView.setAdapter(new BusinessAdapter(MainActivity.this, myBusinesses));
+//                MenuItem item = (MenuItem) findViewById(R.id.searchItem);
+                SearchView searchView = (SearchView) findViewById(R.id.searchItem);
 
-                ListView mainListView = (ListView) findViewById(android.R.id.list);
-
-                mainListView.setAdapter(new BusinessAdapter(MainActivity.this, businesses));
+                // This method does not exist
+                searchView.onActionViewCollapsed();
+                Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
+                setSupportActionBar(locatioinToolbar);
+                getSupportActionBar().hide();
+//                mFragment.setmBusiness(myBusinesses);
             }
             @Override
             public void onFailure(Throwable t) {

@@ -1,5 +1,6 @@
 package chunyili.sjsu.edu.findresturant;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,16 +23,18 @@ import java.lang.*;
 /**
  * Created by jilongsun on 3/19/16.
  */
-public class BusinessAdapter extends ArrayAdapter<Business> {
+public class BusinessAdapter extends ArrayAdapter<MyBusiness> {
 
-    public BusinessAdapter(Context context, ArrayList<Business> users) {
-        super(context, 0, users);
+
+
+    public BusinessAdapter(Context context, ArrayList<MyBusiness> businesses) {
+        super(context,0 , businesses);
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         // Get the data item for this position
-        Business business = getItem(position);
+        MyBusiness business = getItem(position);
         // Check if an existing view is being reused, otherwise inflate the view
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.container_list_item_view, parent, false);
@@ -43,13 +46,13 @@ public class BusinessAdapter extends ArrayAdapter<Business> {
         //  TextView tvHome = (TextView) convertView.findViewById(R.id.business_rating);
 
         new DownloadImageTask((ImageView) convertView.findViewById(R.id.image))
-                .execute(business.imageUrl());
+                .execute(business.getBusiness().imageUrl());
         new DownloadImageTask((ImageView) convertView.findViewById(R.id.rating))
-                .execute(business.ratingImgUrlSmall());
+                .execute(business.getBusiness().ratingImgUrlSmall());
 
         // Populate the data into the template view using the data object
         StringBuilder sb = new StringBuilder();
-        String address = business.location().address().toString();
+        String address = business.getBusiness().location().address().toString();
 
 
         for(int i = 0; i < address.length() - 1; i ++){
@@ -61,10 +64,10 @@ public class BusinessAdapter extends ArrayAdapter<Business> {
         }
 
 
-        tvName.setText(business.name());
-        tvId.setText(business.id());
+        tvName.setText(business.getBusiness().name());
+        tvId.setText(business.getBusiness().id());
 
-        tvLocation.setText(""+ sb.toString()+ ", " + business.location().city());
+        tvLocation.setText("" + sb.toString() + ", " + business.getBusiness().location().city());
 
         return convertView;
     }

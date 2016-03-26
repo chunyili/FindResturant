@@ -29,8 +29,8 @@
 
         <ImageView
             android:id="@+id/rating"
-            android:layout_width="fill_parent"
-            android:layout_height="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_below="@id/business_name"
             android:layout_toRightOf="@+id/image"/>
         <TextView

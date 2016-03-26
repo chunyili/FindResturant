@@ -19,7 +19,7 @@ android {
         }
     }
     dexOptions {
-        preDexLibraries false
+        preDexLibraries true
         javaMaxHeapSize "4g" // Use gig increments depending on needs
         incremental true
     }
@@ -44,6 +44,7 @@ repositories {
 }
 
 dependencies {
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.6.3'
     compile 'com.google.android.gms:play-services:8.4.0'
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
