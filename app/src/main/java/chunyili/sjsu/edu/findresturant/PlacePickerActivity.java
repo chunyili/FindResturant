@@ -36,7 +36,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 
 
 public class PlacePickerActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener,
-        GoogleApiClient.ConnectionCallbacks,
+
         LocationListener {
     private static final int PLACE_PICKER_REQUEST = 1;
     private TextView mName;
@@ -48,20 +48,17 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
     private static final int PERMISSION_REQUEST_CODE = 100;
 
 
-//    private static final LatLngBounds BOUNDS_MOUNTAIN_VIEW = new LatLngBounds(
-//            new LatLng(37.398160, -122.180831), new LatLng(37.430610, -121.972090));
+    private static final LatLngBounds BOUNDS_SAN_JOSE = new LatLngBounds(
+            new LatLng(37.3394444, -121.8938889), new LatLng(37.430610, -121.972090));
 
     private final static int
             CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private final static String TAG = "LocationTest";
-    // Location client
-    // Current location
     Location mCurrentLocation;
     boolean mConnected = false;
     private TextView mLocationView;
 
 
-    // Object that holds accuracy and frequency parameters
     LocationRequest mLocationRequest;
     private ConnectionResult connectionResult;
 
@@ -70,34 +67,18 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_place_picker);
-        // Create Location Client
-        mLocationView = (TextView) findViewById(R.id.textView1);
-//
-//        setContentView(mLocationView);
 
-//        mGoogleApiClient = new GoogleApiClient.Builder(this)
-//                .addApi(LocationServices.API)
-//                .addConnectionCallbacks(this)
-//                .addOnConnectionFailedListener(this)
-//                .build();
+        mLocationView = (TextView) findViewById(R.id.textView1);
+
         mName = (TextView) findViewById(R.id.textView);
         mAddress = (TextView) findViewById(R.id.textView2);
         mAttributions = (TextView) findViewById(R.id.textView3);
         Button pickerButton = (Button) findViewById(R.id.pickerButton);
-//
-//        pickerButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                displayLocation();
-//            }
-//        });
-//        final int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
-//
+
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Places.PLACE_DETECTION_API)
                 .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
                 .enableAutoManage(this, GOOGLE_API_CLIENT_ID, PlacePickerActivity.this)
                 .build();
 
@@ -118,27 +99,21 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
                 }
             }
         });
-//        pickerButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                try {
-//
-//
-////                    if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-//                        //Execute location service call if user has explicitly granted ACCESS_FINE_LOCATION..
-//
-//                        PlacePicker.IntentBuilder intentBuilder =
-//                                new PlacePicker.IntentBuilder();
-//                        intentBuilder.setLatLngBounds(BOUNDS_MOUNTAIN_VIEW);
-//                        Intent intent = intentBuilder.build(PlacePickerActivity.this);
-//                        startActivityForResult(intent, PLACE_PICKER_REQUEST);
-////                    }
-//                } catch (GooglePlayServicesRepairableException
-//                        | GooglePlayServicesNotAvailableException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
+
+        PlacePicker.IntentBuilder intentBuilder =
+                new PlacePicker.IntentBuilder();
+
+
+        intentBuilder.setLatLngBounds(BOUNDS_SAN_JOSE);
+        Intent intent = null;
+        try {
+            intent = intentBuilder.build(PlacePickerActivity.this);
+        } catch (GooglePlayServicesRepairableException e) {
+            e.printStackTrace();
+        } catch (GooglePlayServicesNotAvailableException e) {
+            e.printStackTrace();
+        }
+        startActivityForResult(intent, PLACE_PICKER_REQUEST);
     }
 
     @Override
@@ -193,24 +168,7 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
                 int count = 0;
                 for (PlaceLikelihood placeLikelihood : likelyPlaces) {
                     if (count == 0) {
-                        PlacePicker.IntentBuilder intentBuilder =
-                                new PlacePicker.IntentBuilder();
-                        LatLng currentLatLng = placeLikelihood.getPlace().getLatLng();
-                        LatLng lowerLatLng = new LatLng(currentLatLng.latitude - 0.01, currentLatLng.longitude - 0.05);
-                        LatLng upperLatLng = new LatLng(currentLatLng.latitude + 0.01, currentLatLng.longitude + 0.05);
 
-                        LatLngBounds currentLocation = new LatLngBounds(
-                                lowerLatLng, upperLatLng);
-                        intentBuilder.setLatLngBounds(currentLocation);
-                        Intent intent = null;
-                        try {
-                            intent = intentBuilder.build(PlacePickerActivity.this);
-                        } catch (GooglePlayServicesRepairableException e) {
-                            e.printStackTrace();
-                        } catch (GooglePlayServicesNotAvailableException e) {
-                            e.printStackTrace();
-                        }
-                        startActivityForResult(intent, PLACE_PICKER_REQUEST);
                     }
                     count++;
                     Log.i(LOG_TAG, String.format("Place '%s' with " +
@@ -258,29 +216,6 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
         }
     }
 
-    @Override
-    public void onConnected(Bundle bundle) {
-
-        Log.i(TAG, "GoogleApiClient connection has been connected.");
-        mLocationRequest = LocationRequest.create();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(1000); // Update location every second
-//
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//             TODO: Consider calling
-            ActivityCompat.requestPermissions(PlacePickerActivity.this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSION_REQUEST_CODE);
-            return;
-        }
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, this);
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        Log.i(TAG, "GoogleApiClient connection has been suspend");
-    }
 
 
     @Override

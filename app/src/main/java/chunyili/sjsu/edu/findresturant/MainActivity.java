@@ -1,7 +1,7 @@
 package chunyili.sjsu.edu.findresturant;
 
 import android.Manifest;
-import android.app.Fragment;
+import android.app.Activity;
 import android.app.LoaderManager;
 import android.app.SearchManager;
 import android.content.Context;
@@ -17,9 +17,11 @@ import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
+import android.text.Html;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
@@ -41,10 +43,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.yelp.clientlib.connection.YelpAPI;
 import com.yelp.clientlib.connection.YelpAPIFactory;
 import com.yelp.clientlib.entities.Business;
@@ -66,19 +74,16 @@ import retrofit.Retrofit;
 public class MainActivity extends AppCompatActivity
         implements
         SearchView.OnQueryTextListener, SearchView.OnCloseListener,
-        NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener,
-        GoogleApiClient.ConnectionCallbacks,
-        LocationListener {
+        NavigationView.OnNavigationItemSelectedListener{
 
-    private static final String FRAGMENT = "frament";
+
+    private static final int PLACE_PICKER_REQUEST = 1;
     private static final String TAG___Test = "SearchActivity";
     public ListView mainListView;
     // This is the Adapter being used to display the list's data.
     BusinessAdapter mAdapter;
     private static final int LOADER_ID = 42;
     static volatile boolean isCurrentLocation = true;
-
-    private GoogleApiClient mGoogleApiClient;
 
     static volatile String query = "";
     private ArrayList<MyBusiness> myBusinesses;
@@ -98,30 +103,30 @@ public class MainActivity extends AppCompatActivity
 
 
 
-        mAdapter = new BusinessAdapter(this, new ArrayList<MyBusiness>());
-        mainListView = (ListView) findViewById(android.R.id.list);
-        mainListView.smoothScrollToPosition(15);
+//        mAdapter = new BusinessAdapter(this, new ArrayList<MyBusiness>());
+//        mainListView = (ListView) findViewById(android.R.id.list);
+//        mainListView.smoothScrollToPosition(15);
+//
+//        Log.e(TAG___Test, mainListView.toString());
+//        mainListView.setAdapter(mAdapter);
+//
+//        Log.e(TAG___Test, "Init content");
+//        final Context context = this;
+//
+//        mainListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                Intent intent = new Intent(context, DetailActivity.class);
+//
+//                TextView tvName = (TextView) view.findViewById(R.id.business_id);
+//
+//                intent.putExtra("id", tvName.getText().toString());
+//                startActivity(intent);
+//
+//            }
+//        });
 
-        Log.e(TAG___Test, mainListView.toString());
-        mainListView.setAdapter(mAdapter);
-
-        Log.e(TAG___Test, "Init content");
-        final Context context = this;
-
-        mainListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(context, DetailActivity.class);
-
-                TextView tvName = (TextView) view.findViewById(R.id.business_id);
-
-                intent.putExtra("id", tvName.getText().toString());
-                startActivity(intent);
-
-            }
-        });
-//        getLoaderManager().initLoader(LOADER_ID, null, this);
         Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
         setSupportActionBar(locatioinToolbar);
         getSupportActionBar().hide();
@@ -141,36 +146,8 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-        if(savedInstanceState != null) {
-            Log.e(TAG___Test, "Loading content");
-            myBusinesses = savedInstanceState.getParcelableArrayList(FRAGMENT);
-            mainListView.setAdapter(new BusinessAdapter(MainActivity.this, myBusinesses));
-        }
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        Log.e(TAG___Test, "Saving content");
-        outState.putParcelableArrayList(FRAGMENT, myBusinesses);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
-        if(savedInstanceState != null) {
-            Log.e(TAG___Test, "Loading content");
-            myBusinesses = savedInstanceState.getParcelableArrayList(FRAGMENT);
-            mainListView.setAdapter(new BusinessAdapter(MainActivity.this, myBusinesses));
-        }
-    }
 
     @Override
     public void onBackPressed() {
@@ -242,23 +219,6 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-//    @Override
-//    public boolean onPrepareOptionsMenu(Menu menu) {
-//
-//        SearchManager searchManager =
-//                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-//        MenuItem menuItem = menu.findItem(R.id.searchItem);
-//        LinearLayout linearLayout = (LinearLayout) menuItem.getActionView();
-//        SearchView searchView =
-//                (SearchView) linearLayout.findViewById(R.id.content_search_view);
-//        Log.e(TAG___Test, getComponentName().toString());
-//        searchView.setSearchableInfo(
-//                searchManager.getSearchableInfo(getComponentName()));
-//
-//        return true;
-//    }
-
-
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -269,7 +229,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_search) {
-            fragClass = SearchableActivity.class;
+
             Toast toast = Toast.makeText(context,"Search", Toast.LENGTH_SHORT);
             toast.show();
 
@@ -332,11 +292,6 @@ public class MainActivity extends AppCompatActivity
         Log.e(TAG___Test, "textchange   " + newText);
         typedLocation = newText;
 
-
-//                typedLocation = newText;
-
-
-
         if(typedLocation.trim().isEmpty()) {
 
             isCurrentLocation = true;
@@ -365,9 +320,6 @@ public class MainActivity extends AppCompatActivity
     private void handleIntent(Intent intent) throws IOException {
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             query = intent.getStringExtra(SearchManager.QUERY);
-
-
-
             doMySearch();
         }
     }
@@ -379,9 +331,6 @@ public class MainActivity extends AppCompatActivity
 
 
         Map<String, String> params = new HashMap<>();
-
-
-
         params.put("term", query);
 
         params.put("limit", "20");
@@ -395,8 +344,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onResponse(Response<SearchResponse> response, Retrofit retrofit) {
                 SearchResponse searchResponse = response.body();
-                // Update UI text with the Business object.
-                int totalNumberOfResult = searchResponse.total();
                 ArrayList<Business> businesses = searchResponse.businesses();
                 Log.e(TAG___Test, String.valueOf(businesses.size()));
 
@@ -405,20 +352,19 @@ public class MainActivity extends AppCompatActivity
                     myBusinesses.add(new MyBusiness(b));
                 }
                 Log.e(TAG___Test, String.valueOf(myBusinesses.size()));
-                mainListView.setAdapter(new BusinessAdapter(MainActivity.this, myBusinesses));
-//                MenuItem item = (MenuItem) findViewById(R.id.searchItem);
+                MyListFragment fragment = (MyListFragment) getSupportFragmentManager().findFragmentById(R.id.fragment1);
+                fragment.setBusinesses(myBusinesses);
+
+//                mainListView.setAdapter(new BusinessAdapter(MainActivity.this, myBusinesses));
                 SearchView searchView = (SearchView) findViewById(R.id.searchItem);
 
-                // This method does not exist
                 searchView.onActionViewCollapsed();
                 Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
                 setSupportActionBar(locatioinToolbar);
                 getSupportActionBar().hide();
-//                mFragment.setmBusiness(myBusinesses);
             }
             @Override
             public void onFailure(Throwable t) {
-                // HTTP error happened, do something to handle it.
                 Log.e(TAG___Test, t.getMessage());
                 t.printStackTrace();
             }
@@ -428,13 +374,6 @@ public class MainActivity extends AppCompatActivity
 
         if(isCurrentLocation){
 
-
-//            CoordinateOptions coordinate = CoordinateOptions.builder()
-//                    .latitude(37.11)
-//                    .longitude(-122.88)
-//                    .build();
-
-//            Call<SearchResponse> call = yelpAPI.search(coordinate, params);
             Call<SearchResponse> call = yelpAPI.search("San Jose", params);
 
             call.enqueue(callback);
@@ -447,78 +386,100 @@ public class MainActivity extends AppCompatActivity
             call.enqueue(callback);
         }
 
-//        Log.e(TAG___Test, query);
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        // Connect the client.
-        mGoogleApiClient.connect();
-    }
+    protected void onActivityResult(int requestCode,
+                                    int resultCode, Intent data) {
 
-    @Override
-    protected void onStop() {
-        // Disconnecting the client invalidates it.
-        mGoogleApiClient.disconnect();
-        super.onStop();
-    }
+        if (requestCode == PLACE_PICKER_REQUEST
+                && resultCode == Activity.RESULT_OK) {
 
+            final Place place = PlacePicker.getPlace(this, data);
+            final CharSequence name = place.getName();
+            final CharSequence address = place.getAddress();
+            String attributions = (String) place.getAttributions();
+            if (attributions == null) {
+                attributions = "";
+            }
 
-    LocationRequest mLocationRequest;
-    private static final int PERMISSION_REQUEST_CODE = 100;
-    @Override
-    public void onConnected(Bundle bundle) {
-        mLocationRequest = LocationRequest.create();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(1000); // Update location every second
-//
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//             TODO: Consider calling
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSION_REQUEST_CODE);
-            return;
+           Log.e(TAG___Test + " test ", name.toString());
+            Log.e(TAG___Test + "test ", address.toString());
+
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
         }
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, this);
-
     }
 
+//    @Override
+//    protected void onStart() {
+//        super.onStart();
+//        // Connect the client.
+//        mGoogleApiClient.connect();
+//    }
+//
+//    @Override
+//    protected void onStop() {
+//        // Disconnecting the client invalidates it.
+//        mGoogleApiClient.disconnect();
+//        super.onStop();
+//    }
+
+//
+//    LocationRequest mLocationRequest;
+//    private static final int PERMISSION_REQUEST_CODE = 100;
+//    @Override
+//    public void onConnected(Bundle bundle) {
+//        mLocationRequest = LocationRequest.create();
+//        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+//        mLocationRequest.setInterval(1000); // Update location every second
+////
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+////             TODO: Consider calling
+//            ActivityCompat.requestPermissions(MainActivity.this,
+//                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+//                    PERMISSION_REQUEST_CODE);
+//            return;
+//        }
+//        LocationServices.FusedLocationApi.requestLocationUpdates(
+//                mGoogleApiClient, mLocationRequest, this);
+//
+//    }
+//
 
 
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        Log.i("suspend", "GoogleApiClient connection has been suspend");
-
-
-
-    }
-
-
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.e("main_location", "Google Places API connection failed with error code: "
-                + connectionResult.getErrorCode());
-
-        Toast.makeText(this,
-                "Google Places API connection failed with error code:" +
-                        connectionResult.getErrorCode(),
-                Toast.LENGTH_LONG).show();
-
-    }
-
-    Double Latitude;
-    Double Longitude;
-
-    @Override
-    public void onLocationChanged(android.location.Location location) {
-        Latitude = Double.valueOf(location.getLatitude());
-        Longitude = Double.valueOf(location.getLongitude());
-
-    }
+//
+//    @Override
+//    public void onConnectionSuspended(int i) {
+//        Log.i("suspend", "GoogleApiClient connection has been suspend");
+//
+//
+//
+//    }
+//
+//
+//
+//    @Override
+//    public void onConnectionFailed(ConnectionResult connectionResult) {
+//        Log.e("main_location", "Google Places API connection failed with error code: "
+//                + connectionResult.getErrorCode());
+//
+//        Toast.makeText(this,
+//                "Google Places API connection failed with error code:" +
+//                        connectionResult.getErrorCode(),
+//                Toast.LENGTH_LONG).show();
+//
+//    }
+//
+//    Double Latitude;
+//    Double Longitude;
+//
+//    @Override
+//    public void onLocationChanged(android.location.Location location) {
+//        Latitude = Double.valueOf(location.getLatitude());
+//        Longitude = Double.valueOf(location.getLongitude());
+//
+//    }
 
 
 }

@@ -48,7 +48,7 @@ public class BusinessAdapter extends ArrayAdapter<MyBusiness> {
         new DownloadImageTask((ImageView) convertView.findViewById(R.id.image))
                 .execute(business.getBusiness().imageUrl());
         new DownloadImageTask((ImageView) convertView.findViewById(R.id.rating))
-                .execute(business.getBusiness().ratingImgUrlSmall());
+                .execute(business.getBusiness().ratingImgUrlLarge());
 
         // Populate the data into the template view using the data object
         StringBuilder sb = new StringBuilder();
