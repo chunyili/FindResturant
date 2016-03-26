@@ -7,24 +7,13 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
+
 import android.content.pm.PackageManager;
 
 import android.net.Uri;
 import android.os.Bundle;
 
 import android.provider.ContactsContract;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.NavUtils;
-import android.support.v4.content.ContextCompat;
-import android.text.Html;
-import android.view.animation.DecelerateInterpolator;
-import android.widget.AdapterView;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SearchView;

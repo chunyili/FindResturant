@@ -3,6 +3,7 @@ package chunyili.sjsu.edu.findresturant;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +24,7 @@ public class MyListFragment extends ListFragment implements AdapterView.OnItemCl
     }
 
     public void setBusinesses(ArrayList<MyBusiness> businesses) {
+        Log.e("list fragment", "setting list items");
         this.businesses = businesses;
         mAdapter = new BusinessAdapter(getActivity(), businesses);
         setListAdapter(mAdapter);
@@ -31,6 +33,7 @@ public class MyListFragment extends ListFragment implements AdapterView.OnItemCl
     private ArrayList<MyBusiness> businesses;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.e("list fragment", "here");
         View view = inflater.inflate(R.layout.list_fragment, container, false);
         businesses = new ArrayList<>();
         mAdapter = new BusinessAdapter(getActivity(), businesses);

@@ -8,33 +8,6 @@
     android:fitsSystemWindows="true"
     tools:openDrawer="start">
 
-
-    <!--<Button-->
-        <!--android:id="@+id/button1"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:text="Revelvance"-->
-        <!--android:onClick="selectFrag"-->
-        <!--android:allowUndo="false" />-->
-
-    <!--<Button-->
-        <!--android:id="@+id/button2"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:onClick="selectFrag"-->
-        <!--android:text="Distance" />-->
-
-    <fragment
-        android:id="@+id/fragment1"
-        android:name="chunyili.sjsu.edu.findresturant.MyListFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-    <include
-        layout="@layout/app_bar_main"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-
     <android.support.design.widget.NavigationView
         android:id="@+id/nav_view"
         android:layout_width="wrap_content"
@@ -44,6 +17,32 @@
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main_drawer" />
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+        <include
+            android:id="@+id/appBar"
+            layout="@layout/app_bar_main"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <fragment
+            android:id="@+id/fragment0"
+            android:name="chunyili.sjsu.edu.findresturant.ButtonFragment"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_below="@+id/appBar"
+            tools:layout="@layout/button_fragment" />
+
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="chunyili.sjsu.edu.findresturant.MyListFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/fragment0"
+            tools:layout="@layout/list_fragment" />
+    </RelativeLayout>
 
 </android.support.v4.widget.DrawerLayout>

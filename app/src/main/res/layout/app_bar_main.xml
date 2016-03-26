@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
+    android:layout_height="wrap_content"
     tools:context="chunyili.sjsu.edu.findresturant.MainActivity">
 
     <android.support.design.widget.AppBarLayout
@@ -37,8 +36,8 @@
                 android:gravity="top" />
         </android.support.v7.widget.Toolbar>
 
-    </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_main" />
+    </android.support.design.widget.AppBarLayout>
+    <!--<include layout="@layout/content_main" />-->
 
 </android.support.design.widget.CoordinatorLayout>

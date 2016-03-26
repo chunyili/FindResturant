@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <RadioButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Distance"
+        android:id="@+id/radioButton"
+        android:textStyle="italic"
+
+        android:checked="false" />
+
+    <RadioButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Revlevance"
+        android:id="@+id/radioButton2"
+        android:layout_alignBottom="@+id/radioButton"
+        android:layout_toEndOf="@+id/radioButton"
+        android:layout_marginStart="53dp"
+        android:textStyle="italic"
+        android:checked="false" />
+</LinearLayout>
+
+
