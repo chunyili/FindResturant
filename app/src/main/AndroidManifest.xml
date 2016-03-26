@@ -85,6 +85,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="chunyili.sjsu.edu.findresturant.MainActivity" />
         </activity>
+        <activity android:name=".FavoriteActivity"
+            android:label="Favorite"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName="chunyili.sjsu.edu.findresturant.MainActivity"
+            />
     </application>
 
 </manifest>

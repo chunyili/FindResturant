@@ -1,6 +1,8 @@
 package chunyili.sjsu.edu.findresturant;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.Image;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -15,12 +17,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.yelp.clientlib.connection.YelpAPI;
 import com.yelp.clientlib.connection.YelpAPIFactory;
@@ -41,10 +45,15 @@ public class DetailActivity extends AppCompatActivity {
     private TextView restaurantName;
     private ImageView restaurantRating;
     private TextView restaurantReviews;
+    public String iconURL;
+    public String ratingURL;
     private TextView restaurantAdress;
     private TextView restaurantPhoneNO;
+    public static String MYFAVORITE = "MyPrefs";
     Intent intent;
     Menu menu;
+    Button button;
+    SharedPreferences sharedpreferences;
 
     private String TAG___Test = "Test";
     @Override
@@ -62,6 +71,26 @@ public class DetailActivity extends AppCompatActivity {
         intent = getIntent();
         connectToYelp();
         restaurantName.setText(intent.getExtras().get("id").toString());
+        button = (Button) findViewById(R.id.restaurant_button);
+        sharedpreferences = getSharedPreferences(MYFAVORITE, Context.MODE_PRIVATE);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences.Editor editor = sharedpreferences.edit();
+                editor.putString("NameKey", restaurantName.getText().toString());
+                editor.putString("AdressKey", restaurantAdress.getText().toString());
+                editor.putString("ReviewKey", restaurantReviews.getText().toString());
+                editor.putString("PhoneKey", restaurantPhoneNO.getText().toString());
+                editor.putString("IconURLKey", iconURL);
+                editor.putString("RatingURL", ratingURL);
+                editor.commit();
+                Toast.makeText(DetailActivity.this, "Thanks", Toast.LENGTH_LONG).show();
+
+                Intent intent = new Intent(DetailActivity.this, FavoriteActivity.class);
+                startActivity(intent);
+
+            }
+        });
 
 
     }
@@ -91,9 +120,11 @@ public class DetailActivity extends AppCompatActivity {
                 restaurantIcon = (ImageView) findViewById(R.id.restaurant_icon);
                 restaurantPhoneNO = (TextView) findViewById(R.id.restaurant_phone_No);
                 restaurantReviews = (TextView) findViewById(R.id.restaurant_reviews);
+                iconURL = searchResponse.imageUrl();
                 new DownloadImageTask(restaurantIcon)
-                        .execute(searchResponse.imageUrl());
+                        .execute(iconURL);
                 restaurantRating = (ImageView) findViewById(R.id.restaurant_rating);
+                ratingURL = searchResponse.ratingImgUrlLarge();
                 new DownloadImageTask(restaurantRating)
                         .execute(searchResponse.ratingImgUrlLarge());
 

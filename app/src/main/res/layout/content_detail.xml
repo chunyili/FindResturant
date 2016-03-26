@@ -65,6 +65,17 @@
         android:layout_toRightOf="@+id/restaurant_icon"
         android:layout_below="@+id/restaurant_rating"/>
 
+    <Button
+        android:id="@+id/restaurant_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawableTop="@mipmap/bookmark"
+        android:background="#00ffffff"
+        android:onClick="run"
+        android:visibility="visible"
+        android:layout_alignEnd="@+id/restaurant_address"
+        android:layout_toEndOf="@+id/restaurant_name"
+        android:layout_alignBottom="@+id/restaurant_name" />
 
     <FrameLayout
         android:layout_below="@+id/restaurant_phone_No"
