@@ -1,21 +1,14 @@
 package chunyili.sjsu.edu.findresturant;
 
-import android.Manifest;
 import android.app.Activity;
-import android.app.LoaderManager;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
-
-import android.content.pm.PackageManager;
-
-import android.net.Uri;
 import android.os.Bundle;
-
-import android.provider.ContactsContract;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.SearchView;
 import android.util.Log;
 import android.view.View;
@@ -27,56 +20,27 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.yelp.clientlib.connection.YelpAPI;
-import com.yelp.clientlib.connection.YelpAPIFactory;
-import com.yelp.clientlib.entities.Business;
-import com.yelp.clientlib.entities.Coordinate;
-import com.yelp.clientlib.entities.Location;
-import com.yelp.clientlib.entities.SearchResponse;
-import com.yelp.clientlib.entities.options.CoordinateOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
-import retrofit.Call;
-import retrofit.Callback;
-import retrofit.Response;
-import retrofit.Retrofit;
+import chunyili.sjsu.edu.findresturant.interfaces.YelpSearchCallback;
 
 public class MainActivity extends AppCompatActivity
         implements
         SearchView.OnQueryTextListener, SearchView.OnCloseListener,
-        NavigationView.OnNavigationItemSelectedListener{
-
-
+        YelpSearchCallback,
+        NavigationView.OnNavigationItemSelectedListener {
     private static final int PLACE_PICKER_REQUEST = 1;
     private static final String TAG___Test = "SearchActivity";
-    public ListView mainListView;
-    // This is the Adapter being used to display the list's data.
-    BusinessAdapter mAdapter;
-    private static final int LOADER_ID = 42;
     static volatile boolean isCurrentLocation = true;
-
     static volatile String query = "";
-    private ArrayList<MyBusiness> myBusinesses;
-
+    private static volatile String typedLocation;
+    private Fragment mFragment;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -88,33 +52,6 @@ public class MainActivity extends AppCompatActivity
 
         getSupportActionBar().setIcon(R.mipmap.icon);
         getSupportActionBar().setTitle(R.string.app_names);
-
-
-
-
-//        mAdapter = new BusinessAdapter(this, new ArrayList<MyBusiness>());
-//        mainListView = (ListView) findViewById(android.R.id.list);
-//        mainListView.smoothScrollToPosition(15);
-//
-//        Log.e(TAG___Test, mainListView.toString());
-//        mainListView.setAdapter(mAdapter);
-//
-//        Log.e(TAG___Test, "Init content");
-//        final Context context = this;
-//
-//        mainListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                Intent intent = new Intent(context, DetailActivity.class);
-//
-//                TextView tvName = (TextView) view.findViewById(R.id.business_id);
-//
-//                intent.putExtra("id", tvName.getText().toString());
-//                startActivity(intent);
-//
-//            }
-//        });
 
         Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
         setSupportActionBar(locatioinToolbar);
@@ -148,7 +85,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private static volatile String typedLocation;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -208,24 +144,37 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
+        Log.e(TAG___Test, "clicked nav item");
         Context context = getApplicationContext();
         // Handle navigation view item clicks here.
         Class fragClass = null;
         int id = item.getItemId();
 
         if (id == R.id.nav_search) {
-
-            Toast toast = Toast.makeText(context,"Search", Toast.LENGTH_SHORT);
+            Log.e(TAG___Test, "clicked search");
+            Toast toast = Toast.makeText(context, "Search", Toast.LENGTH_SHORT);
             toast.show();
+            FragmentManager fm = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fm.beginTransaction();
+
+            mFragment = new SearchFragment();
+            fragmentTransaction.replace(R.id.fragment_container, mFragment);
+            fragmentTransaction.commit();
 
         } else if (id == R.id.nav_favorite) {
+            Log.e(TAG___Test, "clicked favorite");
             fragClass = FavoriteActivity.class;
-            Toast toast = Toast.makeText(context,"Favorite", Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(context, "Favorite", Toast.LENGTH_SHORT);
             toast.show();
+            FragmentManager fm = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fm.beginTransaction();
+
+            mFragment = new LikeFragment();
+            fragmentTransaction.replace(R.id.fragment_container, mFragment);
+            fragmentTransaction.commit();
 
         }
 
@@ -233,16 +182,6 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
-    // These are the Contacts rows that we will retrieve.
-    static final String[] CONTACTS_SUMMARY_PROJECTION = new String[]{
-            ContactsContract.Contacts._ID,
-            ContactsContract.Contacts.DISPLAY_NAME,
-            ContactsContract.Contacts.CONTACT_STATUS,
-            ContactsContract.Contacts.CONTACT_PRESENCE,
-            ContactsContract.Contacts.PHOTO_ID,
-            ContactsContract.Contacts.LOOKUP_KEY,
-    };
 
 
     @Override
@@ -253,21 +192,17 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onQueryTextSubmit(String query) {
 
-        Log.e(TAG___Test, "  submit  " +  typedLocation);
+        Log.e(TAG___Test, "  submit  " + typedLocation);
 
-        if(!isCurrentLocation && typedLocation.length() > 0){
-            try {
-                doMySearch();
-                Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
-                SearchView searchView =
-                        (SearchView) locatioinToolbar.findViewById(R.id.location_search_view);
+        if (!isCurrentLocation && typedLocation.length() > 0) {
+            doMySearch();
+            Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
+            SearchView searchView =
+                    (SearchView) locatioinToolbar.findViewById(R.id.location_search_view);
 
-                searchView.setVisibility(View.INVISIBLE);
-                setSupportActionBar(locatioinToolbar);
-                getSupportActionBar().hide();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            searchView.setVisibility(View.INVISIBLE);
+            setSupportActionBar(locatioinToolbar);
+            getSupportActionBar().hide();
             return true;
         }
         return false;
@@ -281,15 +216,15 @@ public class MainActivity extends AppCompatActivity
         Log.e(TAG___Test, "textchange   " + newText);
         typedLocation = newText;
 
-        if(typedLocation.trim().isEmpty()) {
+        if (typedLocation.trim().isEmpty()) {
 
             isCurrentLocation = true;
 
-        }else{
+        } else {
             isCurrentLocation = false;
         }
 
-        Log.e(TAG___Test, "iscurrentlocation " +  isCurrentLocation);
+        Log.e(TAG___Test, "iscurrentlocation " + isCurrentLocation);
         Log.e(TAG___Test, "typed location  " + typedLocation);
 
 
@@ -309,72 +244,25 @@ public class MainActivity extends AppCompatActivity
     private void handleIntent(Intent intent) throws IOException {
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             query = intent.getStringExtra(SearchManager.QUERY);
+
             doMySearch();
         }
     }
 
+    public void doMySearch() {
+        if (mFragment instanceof SearchFragment) {
+            SearchFragment fragment = (SearchFragment)mFragment;
 
-    private void doMySearch() throws IOException {
-        YelpAPIFactory apiFactory = new YelpAPIFactory("QHmJW4LG9PtjZEqUiW1pow", "yjf3i7UyzturnAkQ2LPtVtnT6k0", "PFRsmfRmnsX1oQXP4tK8Gm-UQ4CSrv1w", "KYhZNmMrY3JKdGyf7JWkxtgA2Gc");
-        YelpAPI yelpAPI = apiFactory.createAPI();
-
-
-        Map<String, String> params = new HashMap<>();
-        params.put("term", query);
-
-        params.put("limit", "20");
-        params.put("radius_filter", "22000");
-
-
-
-        params.put("lang", "en");
-
-        Callback<SearchResponse> callback = new Callback<SearchResponse>() {
-            @Override
-            public void onResponse(Response<SearchResponse> response, Retrofit retrofit) {
-                SearchResponse searchResponse = response.body();
-                ArrayList<Business> businesses = searchResponse.businesses();
-                Log.e(TAG___Test, String.valueOf(businesses.size()));
-
-                myBusinesses = new ArrayList<>();
-                for(Business b: businesses){
-                    myBusinesses.add(new MyBusiness(b));
-                }
-                Log.e(TAG___Test, String.valueOf(myBusinesses.size()));
-                MyListFragment fragment = (MyListFragment) getSupportFragmentManager().findFragmentById(R.id.fragment1);
-                fragment.setBusinesses(myBusinesses);
-
-//                mainListView.setAdapter(new BusinessAdapter(MainActivity.this, myBusinesses));
-                SearchView searchView = (SearchView) findViewById(R.id.searchItem);
-
-                searchView.onActionViewCollapsed();
-                Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
-                setSupportActionBar(locatioinToolbar);
-                getSupportActionBar().hide();
+            fragment.setIsCurrentLocation(isCurrentLocation);
+            fragment.setQuery(query);
+            fragment.setTypedLocation(typedLocation);
+            fragment.setmSearchCallback(this);
+            try {
+                fragment.doMySearch();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            @Override
-            public void onFailure(Throwable t) {
-                Log.e(TAG___Test, t.getMessage());
-                t.printStackTrace();
-            }
-        };
-        Log.e(TAG___Test, "" + isCurrentLocation);
-        Log.e(TAG___Test, "here   " +typedLocation);
-
-        if(isCurrentLocation){
-
-            Call<SearchResponse> call = yelpAPI.search("San Jose", params);
-
-            call.enqueue(callback);
-
-        }else{
-
-            Log.e(TAG___Test, typedLocation);
-            Call<SearchResponse> call = yelpAPI.search(typedLocation, params);
-
-            call.enqueue(callback);
         }
-
     }
 
     @Override
@@ -392,12 +280,26 @@ public class MainActivity extends AppCompatActivity
                 attributions = "";
             }
 
-           Log.e(TAG___Test + " test ", name.toString());
+            Log.e(TAG___Test + " test ", name.toString());
             Log.e(TAG___Test + "test ", address.toString());
 
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    @Override
+    public void onSearchReturned(ArrayList<MyBusiness> myBusinesses) {
+        MyListFragment fragment = (MyListFragment) mFragment.getChildFragmentManager().findFragmentById(R.id.fragment1);
+        fragment.setBusinesses(myBusinesses);
+
+//                mainListView.setAdapter(new BusinessAdapter(MainActivity.this, myBusinesses));
+        SearchView searchView = (SearchView) findViewById(R.id.searchItem);
+
+        searchView.onActionViewCollapsed();
+        Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
+        setSupportActionBar(locatioinToolbar);
+        getSupportActionBar().hide();
     }
 
 //    @Override
