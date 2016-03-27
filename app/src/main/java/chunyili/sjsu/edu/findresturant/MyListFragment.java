@@ -49,6 +49,7 @@ public class MyListFragment extends ListFragment implements AdapterView.OnItemCl
         getListView().setOnItemClickListener(this);
     }
 
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position,long id) {
             Intent intent = new Intent(getContext(), DetailActivity.class);

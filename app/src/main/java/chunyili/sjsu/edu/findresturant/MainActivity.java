@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity
     private static volatile String typedLocation;
     private LatLng latLng;
     private String sortBy = "";
+    private YelpSearchUtil yelpSearchUtil;
 
     private Fragment mFragment;
 
@@ -56,6 +57,7 @@ public class MainActivity extends AppCompatActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        yelpSearchUtil = new YelpSearchUtil();
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -273,14 +275,15 @@ public class MainActivity extends AppCompatActivity
         if (mFragment instanceof SearchFragment) {
             SearchFragment fragment = (SearchFragment)mFragment;
 
-            fragment.setSortBy(sortBy);
-            fragment.setIsCurrentLocation(isCurrentLocation);
-            fragment.setQuery(query);
-            fragment.setTypedLocation(typedLocation);
-            fragment.setLatLng(latLng);
-            fragment.setmSearchCallback(this);
+
+            yelpSearchUtil.setSortBy(sortBy);
+            yelpSearchUtil.setIsCurrentLocation(isCurrentLocation);
+            yelpSearchUtil.setQuery(query);
+            yelpSearchUtil.setTypedLocation(typedLocation);
+            yelpSearchUtil.setLatLng(latLng);
+            yelpSearchUtil.setmSearchCallback(this);
             try {
-                fragment.doMySearch();
+                yelpSearchUtil.doMySearch();
             } catch (IOException e) {
                 e.printStackTrace();
             }

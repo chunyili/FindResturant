@@ -52,4 +52,6 @@ dependencies {
     compile 'com.android.support:design:23.1.1'
     compile 'com.yelp.clientlib:yelp-android:1.0.0'
     androidTestCompile 'junit:junit:4.12'
+    compile 'com.couchbase.lite:couchbase-lite-android:1.1.0'
+
 }

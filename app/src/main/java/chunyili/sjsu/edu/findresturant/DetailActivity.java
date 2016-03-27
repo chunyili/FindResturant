@@ -1,5 +1,7 @@
 package chunyili.sjsu.edu.findresturant;
 
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -29,18 +31,19 @@ import android.widget.Toast;
 import com.yelp.clientlib.connection.YelpAPI;
 import com.yelp.clientlib.connection.YelpAPIFactory;
 import com.yelp.clientlib.entities.Business;
-import com.yelp.clientlib.entities.SearchResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import chunyili.sjsu.edu.findresturant.interfaces.YelpBusinessCallback;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.Response;
 import retrofit.Retrofit;
 
-public class DetailActivity extends AppCompatActivity {
+public class DetailActivity extends AppCompatActivity 
+implements YelpBusinessCallback{
     private ImageView restaurantIcon;
     private TextView restaurantName;
     private ImageView restaurantRating;
@@ -59,14 +62,18 @@ public class DetailActivity extends AppCompatActivity {
     Menu menu;
     Button button;
     SharedPreferences sharedpreferences;
+    private YelpSearchUtil yelpSearchUtil;
+    private DBUitl dbUitl;
 
     private String TAG___Test = "Test";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        yelpSearchUtil = new YelpSearchUtil();
         setContentView(R.layout.activity_detail);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        dbUitl = new DBUitl(this);
 
         getSupportActionBar().setIcon(R.mipmap.icon);
         getSupportActionBar().setTitle(R.string.app_names);
@@ -74,29 +81,20 @@ public class DetailActivity extends AppCompatActivity {
 
         restaurantName = (TextView) findViewById(R.id.restaurant_name);
         intent = getIntent();
-        connectToYelp();
+        final String id = intent.getExtras().getString("id");
+        yelpSearchUtil.setmBusinessCallback(this);
+        yelpSearchUtil.findBusiness(id);
         restaurantName.setText(intent.getExtras().get("id").toString());
+
         button = (Button) findViewById(R.id.restaurant_button);
         sharedpreferences = getSharedPreferences(MYFAVORITE, Context.MODE_PRIVATE);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences.Editor editor = sharedpreferences.edit();
-                editor.putString("NameKey", restaurantName.getText().toString());
-                editor.putString("AdressKey", restaurantAdress.getText().toString());
-                editor.putString("ReviewKey", restaurantReviews.getText().toString());
-                editor.putString("PhoneKey", restaurantPhoneNO.getText().toString());
-                editor.putString("IconURLKey", iconURL);
-                editor.putString("RatingURL", ratingURL);
-                editor.putString("latitute", String.valueOf(latitude));
-                editor.putString("longtitute", String.valueOf(longtitue));
-                editor.commit();
-
-                Toast.makeText(DetailActivity.this, "Thanks", Toast.LENGTH_LONG).show();
-
-                Intent intent = new Intent(DetailActivity.this, FavoriteActivity.class);
-                startActivity(intent);
-
+                Toast toast = Toast.makeText(DetailActivity.this, "Thanks", Toast.LENGTH_SHORT);
+                toast.show();
+                Log.e(TAG___Test, "like " + id);
+                dbUitl.addLike(id);
             }
         });
 
@@ -104,92 +102,6 @@ public class DetailActivity extends AppCompatActivity {
     }
 
 
-    private void connectToYelp(){
-        YelpAPIFactory apiFactory = new YelpAPIFactory("QHmJW4LG9PtjZEqUiW1pow", "yjf3i7UyzturnAkQ2LPtVtnT6k0", "PFRsmfRmnsX1oQXP4tK8Gm-UQ4CSrv1w", "KYhZNmMrY3JKdGyf7JWkxtgA2Gc");
-        YelpAPI yelpAPI = apiFactory.createAPI();
-
-
-        Map<String, String> params = new HashMap<>();
-
-
-
-        params.put("lang", "en");
-
-        Callback<Business> callback = new Callback<Business>() {
-            @Override
-            public void onResponse(Response<Business> response, Retrofit retrofit) {
-                Business searchResponse = response.body();
-                //String name = searchResponse.name();
-
-//                View convertView = LayoutInflater//.from(getContext()).inflate(R.layout.container_list_item_view, parent, false);
-                // Lookup view for data population
-                restaurantName = (TextView) findViewById(R.id.restaurant_name);
-                restaurantAdress = (TextView) findViewById(R.id.restaurant_address);
-                restaurantIcon = (ImageView) findViewById(R.id.restaurant_icon);
-                restaurantPhoneNO = (TextView) findViewById(R.id.restaurant_phone_No);
-                restaurantReviews = (TextView) findViewById(R.id.restaurant_reviews);
-                ImageView map = (ImageView) findViewById((R.id.map));
-
-                iconURL = searchResponse.imageUrl();
-                new DownloadImageTask(restaurantIcon)
-                        .execute(iconURL);
-                restaurantRating = (ImageView) findViewById(R.id.restaurant_rating);
-                ratingURL = searchResponse.ratingImgUrlLarge();
-                latitude = searchResponse.location().coordinate().latitude();
-                longtitue = searchResponse.location().coordinate().longitude();
-
-                mapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=" + latitude + ","
-                        + longtitue+ "&zoom=20&size=1500x800&maptype=roadmap&markers=color:red%7Clabel:name%7C" + latitude + "," + longtitue;
-
-
-                new DownloadImageTask(restaurantRating)
-                        .execute(searchResponse.ratingImgUrlLarge());
-
-                new DownloadImageTask(map).execute(mapUrl);
-
-                // Populate the data into the template view using the data object
-                StringBuilder sb = new StringBuilder();
-                String address = searchResponse.location().address().toString();
-
-
-                for(int i = 0; i < address.length() - 1; i ++){
-                    if(address.charAt(i) == '[' ){
-                        continue;
-                    }else{
-                        sb.append(address.charAt(i));
-                    }
-                }
-
-
-                restaurantName.setText(searchResponse.name());
-                if (searchResponse.phone() != null) {
-                    restaurantPhoneNO.setText("Call " + searchResponse.phone().toString());
-                } else {
-                    restaurantPhoneNO.setText("No data!");
-                }
-                if (searchResponse.reviewCount() != null) {
-                    restaurantReviews.setText(searchResponse.reviewCount() + " Reviews");
-                } else {
-                    restaurantReviews.setText("No data!");
-                }
-
-                restaurantAdress.setText(""+ sb.toString()+ ", " + searchResponse.location().city());
-
-                // Update UI text with the Business object.
-
-            }
-            @Override
-            public void onFailure(Throwable t) {
-                // HTTP error happened, do something to handle it.
-                Log.e(TAG___Test, t.getMessage());
-                t.printStackTrace();
-            }
-        };
-
-        Call<Business> call = yelpAPI.getBusiness(intent.getExtras().get("id").toString(), params);
-
-        call.enqueue(callback);
-    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         this.menu = menu;
@@ -210,4 +122,58 @@ public class DetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onBusinessReturn(MyBusiness myBusiness) {
+        restaurantName = (TextView) findViewById(R.id.restaurant_name);
+        restaurantAdress = (TextView) findViewById(R.id.restaurant_address);
+        restaurantIcon = (ImageView) findViewById(R.id.restaurant_icon);
+        restaurantPhoneNO = (TextView) findViewById(R.id.restaurant_phone_No);
+        restaurantReviews = (TextView) findViewById(R.id.restaurant_reviews);
+        ImageView map = (ImageView) findViewById((R.id.map));
+
+        iconURL = myBusiness.getBusiness().imageUrl();
+        new DownloadImageTask(restaurantIcon)
+                .execute(iconURL);
+        restaurantRating = (ImageView) findViewById(R.id.restaurant_rating);
+        ratingURL = myBusiness.getBusiness().ratingImgUrlLarge();
+        latitude = myBusiness.getBusiness().location().coordinate().latitude();
+        longtitue = myBusiness.getBusiness().location().coordinate().longitude();
+
+        mapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=" + latitude + ","
+                + longtitue+ "&zoom=20&size=1500x800&maptype=roadmap&markers=color:red%7Clabel:name%7C" + latitude + "," + longtitue;
+
+
+        new DownloadImageTask(restaurantRating)
+                .execute(myBusiness.getBusiness().ratingImgUrlLarge());
+
+        new DownloadImageTask(map).execute(mapUrl);
+
+        // Populate the data into the template view using the data object
+        StringBuilder sb = new StringBuilder();
+        String address = myBusiness.getBusiness().location().address().toString();
+
+
+        for(int i = 0; i < address.length() - 1; i ++){
+            if(address.charAt(i) == '[' ){
+                continue;
+            }else{
+                sb.append(address.charAt(i));
+            }
+        }
+
+
+        restaurantName.setText(myBusiness.getBusiness().name());
+        if (myBusiness.getBusiness().phone() != null) {
+            restaurantPhoneNO.setText("Call " + myBusiness.getBusiness().phone().toString());
+        } else {
+            restaurantPhoneNO.setText("No data!");
+        }
+        if (myBusiness.getBusiness().reviewCount() != null) {
+            restaurantReviews.setText(myBusiness.getBusiness().reviewCount() + " Reviews");
+        } else {
+            restaurantReviews.setText("No data!");
+        }
+
+        restaurantAdress.setText(""+ sb.toString()+ ", " + myBusiness.getBusiness().location().city());
+    }
 }
