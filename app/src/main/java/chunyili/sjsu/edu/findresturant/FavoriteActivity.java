@@ -6,13 +6,15 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 /**
  * Created by ljtao on 3/25/16.
  */
-public class FavoriteActivity extends Activity {
+public class FavoriteActivity extends AppCompatActivity {
     public static String MYFAVORITE = "MyPrefs";
     private ImageView restaurantIcon;
     private TextView restaurantName;
@@ -26,6 +28,13 @@ public class FavoriteActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.favorite);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setIcon(R.mipmap.icon);
+        getSupportActionBar().setTitle(R.string.app_names);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         restaurantName = (TextView) findViewById(R.id.name1);
         restaurantReviews = (TextView) findViewById(R.id.name2);
         restaurantPhoneNO = (TextView) findViewById(R.id.name3);
@@ -38,11 +47,11 @@ public class FavoriteActivity extends Activity {
         iconURL = sharedpreferences.getString("IconURLKey", "");
         ratingURL = sharedpreferences.getString("RatingKey", "");
         restaurantIcon = (ImageView) findViewById(R.id.restaurant_icon);
-        new DownloadImageTask(restaurantIcon)
-                .execute(iconURL);
-        restaurantRating = (ImageView) findViewById(R.id.restaurant_rating);
-        new DownloadImageTask(restaurantRating)
-                .execute(ratingURL);
+//        new DownloadImageTask(restaurantIcon)
+//                .execute(iconURL);
+//        restaurantRating = (ImageView) findViewById(R.id.restaurant_rating);
+//        new DownloadImageTask(restaurantRating)
+//                .execute(ratingURL);
 
     }
 }
