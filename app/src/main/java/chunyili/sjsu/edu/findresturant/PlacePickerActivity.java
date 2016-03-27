@@ -59,8 +59,7 @@ public class PlacePickerActivity extends AppCompatActivity implements GoogleApiC
     private TextView mLocationView;
 
 
-    LocationRequest mLocationRequest;
-    private ConnectionResult connectionResult;
+
 
 
     @Override

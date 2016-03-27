@@ -47,6 +47,11 @@ public class DetailActivity extends AppCompatActivity {
     private TextView restaurantReviews;
     public String iconURL;
     public String ratingURL;
+    private double latitude;
+    private double longtitue;
+
+    private String mapUrl;
+
     private TextView restaurantAdress;
     private TextView restaurantPhoneNO;
     public static String MYFAVORITE = "MyPrefs";
@@ -83,7 +88,10 @@ public class DetailActivity extends AppCompatActivity {
                 editor.putString("PhoneKey", restaurantPhoneNO.getText().toString());
                 editor.putString("IconURLKey", iconURL);
                 editor.putString("RatingURL", ratingURL);
+                editor.putString("latitute", String.valueOf(latitude));
+                editor.putString("longtitute", String.valueOf(longtitue));
                 editor.commit();
+
                 Toast.makeText(DetailActivity.this, "Thanks", Toast.LENGTH_LONG).show();
 
                 Intent intent = new Intent(DetailActivity.this, FavoriteActivity.class);
@@ -120,13 +128,24 @@ public class DetailActivity extends AppCompatActivity {
                 restaurantIcon = (ImageView) findViewById(R.id.restaurant_icon);
                 restaurantPhoneNO = (TextView) findViewById(R.id.restaurant_phone_No);
                 restaurantReviews = (TextView) findViewById(R.id.restaurant_reviews);
+                ImageView map = (ImageView) findViewById((R.id.map));
+
                 iconURL = searchResponse.imageUrl();
                 new DownloadImageTask(restaurantIcon)
                         .execute(iconURL);
                 restaurantRating = (ImageView) findViewById(R.id.restaurant_rating);
                 ratingURL = searchResponse.ratingImgUrlLarge();
+                latitude = searchResponse.location().coordinate().latitude();
+                longtitue = searchResponse.location().coordinate().longitude();
+
+                mapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=" + latitude + ","
+                        + longtitue+ "&zoom=20&size=1500x800&maptype=roadmap&markers=color:red%7Clabel:name%7C" + latitude + "," + longtitue;
+
+
                 new DownloadImageTask(restaurantRating)
                         .execute(searchResponse.ratingImgUrlLarge());
+
+                new DownloadImageTask(map).execute(mapUrl);
 
                 // Populate the data into the template view using the data object
                 StringBuilder sb = new StringBuilder();

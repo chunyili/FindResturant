@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
+import android.widget.RadioGroup;
 import android.widget.SearchView;
 import android.util.Log;
 import android.view.View;
@@ -29,9 +30,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import chunyili.sjsu.edu.findresturant.interfaces.YelpSearchCallback;
+import chunyili.sjsu.edu.findresturant.interfaces.YelpSortChangeListner;
 
 public class MainActivity extends AppCompatActivity
         implements
+        YelpSortChangeListner,
         SearchView.OnQueryTextListener, SearchView.OnCloseListener,
         YelpSearchCallback,
         NavigationView.OnNavigationItemSelectedListener {
@@ -40,6 +43,8 @@ public class MainActivity extends AppCompatActivity
     static volatile boolean isCurrentLocation = true;
     static volatile String query = "";
     private static volatile String typedLocation;
+    private String sortBy = "";
+
     private Fragment mFragment;
 
     @Override
@@ -52,6 +57,9 @@ public class MainActivity extends AppCompatActivity
 
         getSupportActionBar().setIcon(R.mipmap.icon);
         getSupportActionBar().setTitle(R.string.app_names);
+
+
+
 
         Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
         setSupportActionBar(locatioinToolbar);
@@ -253,6 +261,7 @@ public class MainActivity extends AppCompatActivity
         if (mFragment instanceof SearchFragment) {
             SearchFragment fragment = (SearchFragment)mFragment;
 
+            fragment.setSortBy(sortBy);
             fragment.setIsCurrentLocation(isCurrentLocation);
             fragment.setQuery(query);
             fragment.setTypedLocation(typedLocation);
@@ -262,6 +271,10 @@ public class MainActivity extends AppCompatActivity
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            ButtonFragment buttonFragment = (ButtonFragment) mFragment
+                    .getChildFragmentManager().findFragmentById(R.id.fragment0);
+            buttonFragment.setmListner(this);
         }
     }
 
@@ -293,7 +306,6 @@ public class MainActivity extends AppCompatActivity
         MyListFragment fragment = (MyListFragment) mFragment.getChildFragmentManager().findFragmentById(R.id.fragment1);
         fragment.setBusinesses(myBusinesses);
 
-//                mainListView.setAdapter(new BusinessAdapter(MainActivity.this, myBusinesses));
         SearchView searchView = (SearchView) findViewById(R.id.searchItem);
 
         searchView.onActionViewCollapsed();
@@ -302,75 +314,10 @@ public class MainActivity extends AppCompatActivity
         getSupportActionBar().hide();
     }
 
-//    @Override
-//    protected void onStart() {
-//        super.onStart();
-//        // Connect the client.
-//        mGoogleApiClient.connect();
-//    }
-//
-//    @Override
-//    protected void onStop() {
-//        // Disconnecting the client invalidates it.
-//        mGoogleApiClient.disconnect();
-//        super.onStop();
-//    }
 
-//
-//    LocationRequest mLocationRequest;
-//    private static final int PERMISSION_REQUEST_CODE = 100;
-//    @Override
-//    public void onConnected(Bundle bundle) {
-//        mLocationRequest = LocationRequest.create();
-//        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-//        mLocationRequest.setInterval(1000); // Update location every second
-////
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-////             TODO: Consider calling
-//            ActivityCompat.requestPermissions(MainActivity.this,
-//                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-//                    PERMISSION_REQUEST_CODE);
-//            return;
-//        }
-//        LocationServices.FusedLocationApi.requestLocationUpdates(
-//                mGoogleApiClient, mLocationRequest, this);
-//
-//    }
-//
-
-
-//
-//    @Override
-//    public void onConnectionSuspended(int i) {
-//        Log.i("suspend", "GoogleApiClient connection has been suspend");
-//
-//
-//
-//    }
-//
-//
-//
-//    @Override
-//    public void onConnectionFailed(ConnectionResult connectionResult) {
-//        Log.e("main_location", "Google Places API connection failed with error code: "
-//                + connectionResult.getErrorCode());
-//
-//        Toast.makeText(this,
-//                "Google Places API connection failed with error code:" +
-//                        connectionResult.getErrorCode(),
-//                Toast.LENGTH_LONG).show();
-//
-//    }
-//
-//    Double Latitude;
-//    Double Longitude;
-//
-//    @Override
-//    public void onLocationChanged(android.location.Location location) {
-//        Latitude = Double.valueOf(location.getLatitude());
-//        Longitude = Double.valueOf(location.getLongitude());
-//
-//    }
-
-
+    @Override
+    public void onSortChanged(String sortBy) {
+        this.sortBy = sortBy;
+        doMySearch();
+    }
 }

@@ -38,6 +38,16 @@ public class SearchFragment extends Fragment {
     private boolean isCurrentLocation = true;
     private String query = "";
 
+    public String getSortBy() {
+        return sortBy;
+    }
+
+    public void setSortBy(String sortBy) {
+        this.sortBy = sortBy;
+    }
+
+    private String sortBy = "";
+
     public YelpSearchCallback getmSearchCallback() {
         return mSearchCallback;
     }
@@ -85,6 +95,9 @@ public class SearchFragment extends Fragment {
 
         Map<String, String> params = new HashMap<>();
         params.put("term", query);
+        if (!sortBy.trim().isEmpty()){
+            params.put("sort", sortBy);
+        }
         params.put("limit", "20");
         params.put("radius_filter", "22000");
         params.put("lang", "en");
