@@ -22,13 +22,14 @@
 
     <TextView
         android:id="@+id/restaurant_name"
-        android:layout_width="wrap_content"
+        android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:text="Restaurant 1"
-        android:layout_toRightOf="@+id/restaurant_icon"
         android:focusable = "false"
         android:focusableInTouchMode = "false"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_alignTop="@+id/restaurant_icon"
+        android:layout_toEndOf="@+id/restaurant_icon" />
 
     <ImageView
         android:id="@+id/restaurant_rating"
@@ -73,9 +74,9 @@
         android:background="#00ffffff"
         android:onClick="run"
         android:visibility="visible"
-        android:layout_alignEnd="@+id/restaurant_address"
+        android:layout_above="@+id/restaurant_reviews"
         android:layout_toEndOf="@+id/restaurant_name"
-        android:layout_alignBottom="@+id/restaurant_name" />
+        android:layout_marginStart="23dp" />
 
     <FrameLayout
         android:layout_below="@+id/restaurant_phone_No"
