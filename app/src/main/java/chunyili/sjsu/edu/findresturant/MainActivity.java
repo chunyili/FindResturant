@@ -8,6 +8,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.SearchView;
@@ -25,24 +26,28 @@ import android.widget.Toast;
 
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
+import chunyili.sjsu.edu.findresturant.interfaces.LocationPickListener;
 import chunyili.sjsu.edu.findresturant.interfaces.YelpSearchCallback;
 import chunyili.sjsu.edu.findresturant.interfaces.YelpSortChangeListner;
 
 public class MainActivity extends AppCompatActivity
         implements
         YelpSortChangeListner,
+        LocationPickListener,
         SearchView.OnQueryTextListener, SearchView.OnCloseListener,
         YelpSearchCallback,
-        NavigationView.OnNavigationItemSelectedListener {
+        NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, View.OnFocusChangeListener {
     private static final int PLACE_PICKER_REQUEST = 1;
     private static final String TAG___Test = "SearchActivity";
     static volatile boolean isCurrentLocation = true;
     static volatile String query = "";
     private static volatile String typedLocation;
+    private LatLng latLng;
     private String sortBy = "";
 
     private Fragment mFragment;
@@ -58,7 +63,12 @@ public class MainActivity extends AppCompatActivity
         getSupportActionBar().setIcon(R.mipmap.icon);
         getSupportActionBar().setTitle(R.string.app_names);
 
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fm.beginTransaction();
 
+        mFragment = new SearchFragment();
+        fragmentTransaction.replace(R.id.fragment_container, mFragment);
+        fragmentTransaction.commit();
 
 
         Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
@@ -107,6 +117,7 @@ public class MainActivity extends AppCompatActivity
         SearchView locationsearchView =
                 (SearchView) locatioinToolbar.findViewById(R.id.location_search_view);
         locationsearchView.setOnQueryTextListener(this);
+        locationsearchView.setOnQueryTextFocusChangeListener(this);
 
 
         Log.e(TAG___Test, getComponentName().toString());
@@ -227,6 +238,7 @@ public class MainActivity extends AppCompatActivity
         if (typedLocation.trim().isEmpty()) {
 
             isCurrentLocation = true;
+            latLng = null;
 
         } else {
             isCurrentLocation = false;
@@ -265,6 +277,7 @@ public class MainActivity extends AppCompatActivity
             fragment.setIsCurrentLocation(isCurrentLocation);
             fragment.setQuery(query);
             fragment.setTypedLocation(typedLocation);
+            fragment.setLatLng(latLng);
             fragment.setmSearchCallback(this);
             try {
                 fragment.doMySearch();
@@ -275,6 +288,9 @@ public class MainActivity extends AppCompatActivity
             ButtonFragment buttonFragment = (ButtonFragment) mFragment
                     .getChildFragmentManager().findFragmentById(R.id.fragment0);
             buttonFragment.setmListner(this);
+            buttonFragment.getView().setVisibility(View.INVISIBLE);
+            Button button = (Button) findViewById(R.id.pickerButton);
+            button.setVisibility(View.GONE);
         }
     }
 
@@ -312,6 +328,9 @@ public class MainActivity extends AppCompatActivity
         Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
         setSupportActionBar(locatioinToolbar);
         getSupportActionBar().hide();
+        ButtonFragment buttonFragment = (ButtonFragment) mFragment
+                .getChildFragmentManager().findFragmentById(R.id.fragment0);
+        buttonFragment.getView().setVisibility(View.VISIBLE);
     }
 
 
@@ -319,5 +338,60 @@ public class MainActivity extends AppCompatActivity
     public void onSortChanged(String sortBy) {
         this.sortBy = sortBy;
         doMySearch();
+    }
+
+    @Override
+    public void onClick(View v) {
+        Toast toast = Toast.makeText(this, "select Location", Toast.LENGTH_SHORT);
+        toast.show();
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fm.beginTransaction();
+
+        mFragment = new PlacePickerFragment();
+        fragmentTransaction.replace(R.id.fragment_container, mFragment);
+        fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        Toast toast = Toast.makeText(this, "select Location", Toast.LENGTH_SHORT);
+        toast.show();
+        if(hasFocus) {
+            Button button = (Button) findViewById(R.id.pickerButton);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    typedLocation = "";
+                    FragmentManager fm = getFragmentManager();
+                    FragmentTransaction fragmentTransaction = fm.beginTransaction();
+
+                    mFragment = new PlacePickerFragment();
+                    fragmentTransaction.replace(R.id.fragment_container, mFragment);
+                    fragmentTransaction.commit();
+                    ((PlacePickerFragment) mFragment).setmListener(MainActivity.this);
+                }
+            });
+            button.setVisibility(View.VISIBLE);
+        }
+        else{
+            Button button = (Button) findViewById(R.id.pickerButton);
+            button.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void onLocationPicked(LatLng latLng, String tag) {
+        this.latLng = latLng;
+        isCurrentLocation = false;
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fm.beginTransaction();
+
+        mFragment = new SearchFragment();
+        fragmentTransaction.replace(R.id.fragment_container, mFragment);
+        fragmentTransaction.commit();
+        Toolbar locatioinToolbar = (Toolbar) findViewById(R.id.location_toolbar);
+        SearchView searchView =
+                (SearchView) locatioinToolbar.findViewById(R.id.location_search_view);
+        searchView.setQueryHint(tag);
     }
 }

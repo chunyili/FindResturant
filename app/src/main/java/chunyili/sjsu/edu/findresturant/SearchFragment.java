@@ -12,10 +12,12 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.SearchView;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.yelp.clientlib.connection.YelpAPI;
 import com.yelp.clientlib.connection.YelpAPIFactory;
 import com.yelp.clientlib.entities.Business;
 import com.yelp.clientlib.entities.SearchResponse;
+import com.yelp.clientlib.entities.options.CoordinateOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,6 +40,16 @@ public class SearchFragment extends Fragment {
     private boolean isCurrentLocation = true;
     private String query = "";
 
+    public LatLng getLatLng() {
+        return latLng;
+    }
+
+    public void setLatLng(LatLng latLng) {
+        this.latLng = latLng;
+    }
+
+    private LatLng latLng;
+
     public String getSortBy() {
         return sortBy;
     }
@@ -58,6 +70,7 @@ public class SearchFragment extends Fragment {
 
     private YelpSearchCallback mSearchCallback;
     private ArrayList<MyBusiness> myBusinesses;
+
     public String getTypedLocation() {
         return typedLocation;
     }
@@ -83,19 +96,21 @@ public class SearchFragment extends Fragment {
     }
 
     private String typedLocation = "";
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.e("list fragment", "here");
         View view = inflater.inflate(R.layout.fragment_search, container, false);
         return view;
     }
+
     public void doMySearch() throws IOException {
         YelpAPIFactory apiFactory = new YelpAPIFactory("QHmJW4LG9PtjZEqUiW1pow", "yjf3i7UyzturnAkQ2LPtVtnT6k0", "PFRsmfRmnsX1oQXP4tK8Gm-UQ4CSrv1w", "KYhZNmMrY3JKdGyf7JWkxtgA2Gc");
         YelpAPI yelpAPI = apiFactory.createAPI();
 
         Map<String, String> params = new HashMap<>();
         params.put("term", query);
-        if (!sortBy.trim().isEmpty()){
+        if (!sortBy.trim().isEmpty()) {
             params.put("sort", sortBy);
         }
         params.put("limit", "20");
@@ -110,12 +125,13 @@ public class SearchFragment extends Fragment {
                 Log.e(TAG, String.valueOf(businesses.size()));
 
                 myBusinesses = new ArrayList<>();
-                for(Business b: businesses){
+                for (Business b : businesses) {
                     myBusinesses.add(new MyBusiness(b));
                 }
                 Log.e(TAG, String.valueOf(myBusinesses.size()));
                 mSearchCallback.onSearchReturned(myBusinesses);
             }
+
             @Override
             public void onFailure(Throwable t) {
                 Log.e(TAG, t.getMessage());
@@ -123,20 +139,28 @@ public class SearchFragment extends Fragment {
             }
         };
         Log.e(TAG, "" + isCurrentLocation);
-        Log.e(TAG, "here   " +typedLocation);
+        Log.e(TAG, "here   " + typedLocation);
 
-        if(isCurrentLocation){
+        if (isCurrentLocation) {
 
             Call<SearchResponse> call = yelpAPI.search("San Jose", params);
-
             call.enqueue(callback);
 
-        }else{
+        } else {
 
-            Log.e(TAG, typedLocation);
-            Call<SearchResponse> call = yelpAPI.search(typedLocation, params);
+            if (latLng == null) {
+                Call<SearchResponse> call = yelpAPI.search(typedLocation, params);
+                call.enqueue(callback);
+            } else {
 
-            call.enqueue(callback);
+                CoordinateOptions coordinateOptions = CoordinateOptions.builder()
+                        .latitude(latLng.latitude)
+                        .longitude(latLng.longitude)
+                        .build();
+                Call<SearchResponse> call = yelpAPI.search(coordinateOptions, params);
+
+                call.enqueue(callback);
+            }
         }
 
     }
