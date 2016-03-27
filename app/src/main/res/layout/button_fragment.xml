@@ -1,43 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
-    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:weightSum="1"
+    android:orientation="vertical"
     android:visibility="invisible"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    android:weightSum="1">
 
     <RadioGroup
         android:id="@+id/radiogroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:weightSum="1"
-        android:orientation="horizontal"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        android:orientation="horizontal"
+        android:weightSum="1">
 
 
+        <RadioButton
+            android:id="@+id/radioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="49dp"
+            android:layout_marginStart="63dp"
+            android:checked="false"
 
+            android:text="Distance"
+            android:textStyle="italic" />
 
-    <RadioButton
-        android:layout_width="wrap_content"
-        android:layout_height="49dp"
-        android:text="Distance"
-        android:id="@+id/radioButton"
-        android:textStyle="italic"
-
-        android:checked="false"
-        android:layout_marginStart="63dp" />
-
-    <RadioButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Revlevance"
-        android:id="@+id/radioButton2"
-        android:textStyle="italic"
-        android:checked="false"
-        android:layout_toRightOf="@+id/radiogroup"
-        android:layout_marginStart="68dp" />
+        <RadioButton
+            android:id="@+id/radioButton2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="68dp"
+            android:layout_toRightOf="@+id/radiogroup"
+            android:checked="false"
+            android:text="Revlevance"
+            android:textStyle="italic" />
     </RadioGroup>
 
 </RelativeLayout>

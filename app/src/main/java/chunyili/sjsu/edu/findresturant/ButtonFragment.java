@@ -41,13 +41,8 @@ public class ButtonFragment extends Fragment {
         @Override
         public void onCheckedChanged(RadioGroup group, int checkedId) {
             Log.e("test", "button clicked");
-            //xml find out which radio button has been checked ...
-            RadioGroup radio_grp=(RadioGroup)getActivity().findViewById(R.id.radiogroup); //change or leave out this line (I've put it in because you might find it useful later )
-            RadioButton rb1=(RadioButton)getActivity().findViewById(R.id.radioButton);  //you dont need to do this again if global ...
-            RadioButton rb2=(RadioButton)getActivity().findViewById(R.id.radioButton2);
-            //toast ... button has been selected ...
             String sortBy = "";
-            if(rb1.isChecked() == true) {
+            if(checkedId == R.id.radioButton) {
                 sortBy = "1";
             }else{
                 sortBy = "0";
